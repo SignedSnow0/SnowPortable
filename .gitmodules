@@ -1,0 +1,3 @@
+[submodule "SnowEngine/External/glfw"]
+	path = SnowEngine/External/glfw
+	url = https://github.com/glfw/glfw.git

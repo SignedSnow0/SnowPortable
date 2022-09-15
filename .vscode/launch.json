@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug SnowEditor",
+            "type": "cppdbg",
+            "request": "launch",
+            "windows": {
+                "program": "${workspaceFolder}/bin/SnowEditor/SnowEditor.exe",
+                "miDebuggerPath": "C:/mingw64/bin/gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/bin/SnowEditor/SnowEditor",
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "Build SnowEditor"
+        }
+    ]
+}

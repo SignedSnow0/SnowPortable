@@ -1,3 +1,6 @@
 [submodule "SnowEngine/External/glfw"]
 	path = SnowEngine/External/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "SnowEngine/External/spdlog"]
+	path = SnowEngine/External/spdlog
+	url = https://github.com/gabime/spdlog.git

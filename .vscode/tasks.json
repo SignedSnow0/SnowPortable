@@ -8,6 +8,7 @@
             "args": [
                 "-S${workspaceFolder}/SnowEditor/",
                 "-B${workspaceFolder}/bin/SnowEditor/",
+                "-DCMAKE_BUILD_TYPE=Debug",
                 "-GMinGW Makefiles"
             ],
             "isBackground": true,

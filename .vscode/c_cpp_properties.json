@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/SnowEngine/Source/",
                 "${workspaceFolder}/SnowEngine/External/spdlog/include/",
-                "${workspaceFolder}/SnowEngine/External/glfw/include/"
+                "${workspaceFolder}/SnowEngine/External/glfw/include/",
+                "${env:VULKAN_SDK}/include/"
             ],
             "defines": [
                 "_DEBUG",

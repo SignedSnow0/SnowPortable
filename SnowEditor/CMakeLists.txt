@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.1)
 
 project(SnowEditor)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 add_subdirectory(../SnowEngine/ ../SnowEngine/)
 
 add_executable(SnowEditor Source/EditorApp.cpp)

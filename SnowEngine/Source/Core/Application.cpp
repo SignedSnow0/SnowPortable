@@ -2,16 +2,18 @@
 #include "Logger.h"
 
 namespace Snow {
-    Application::Application() {
+    Application::Application(const AppInfo& info) {
         Logger::Initialize();
         Window::Initialize();
+        Graphics::Initialize(info.Api);
 
         LOG_INFO("Application created");
 
-        mWindow = new Window("SnowEngine", 1280, 720);
+        mWindow = new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight);
     }
 
     Application::~Application() {
+        Graphics::Shutdown();
         Window::Shutdown();
         Logger::Shutdown();
     }

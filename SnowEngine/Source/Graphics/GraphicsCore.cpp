@@ -1,5 +1,7 @@
 #include "GraphicsCore.h"
 #include "Core/Logger.h"
+#include "Core/Utils.h"
+#include "Graphics/Rhi/Shader.h"
 
 #include "Platform/Vulkan/VkCore.h"
 
@@ -24,7 +26,8 @@ namespace Snow {
                 return false;
             }
         }
-        
+        sInstance->mApi = api;
+
         return true;
     }
 
@@ -33,8 +36,35 @@ namespace Snow {
             return;
         }
 
+        delete sInstance->mDefaultResources.GraphicsPipeline;
+        delete sInstance->mDefaultResources.TargetPass;
+        delete sInstance->mDefaultResources.ShaderProgram;
+
         delete sInstance;
         sInstance = nullptr;
         LOG_INFO("Graphics system shutdown");
+    }
+
+    GraphicsAPI Graphics::Api() { return sInstance->mApi; }
+
+    void Graphics::CreateDefaultResources(Surface* surface) {
+        sInstance->mDefaultResources.ShaderProgram = Shader::Create({
+            { Utils::GetShadersPath() / "default.vert", ShaderStage::Vertex },
+            { Utils::GetShadersPath() / "default.frag", ShaderStage::Fragment }
+        });
+
+        sInstance->mDefaultResources.TargetPass = RenderPass::Create({ 1280, 720, 2, surface });
+
+        sInstance->mDefaultResources.GraphicsPipeline = Pipeline::Create({ sInstance->mDefaultResources.ShaderProgram, sInstance->mDefaultResources.TargetPass });
+    }
+
+    void Graphics::DebugDraw() {
+        //TODO: remove this
+        sInstance->mDefaultResources.TargetPass->Begin();
+        sInstance->mDefaultResources.GraphicsPipeline->Bind();
+
+
+        
+        sInstance->mDefaultResources.TargetPass->End();
     }
 }

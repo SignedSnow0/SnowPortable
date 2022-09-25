@@ -19,7 +19,7 @@ namespace Snow {
         glfwDestroyWindow(reinterpret_cast<GLFWwindow*>(mWindow));
     }
 
-    decltype(auto) Window::Native() { return reinterpret_cast<GLFWwindow*>(mWindow); }
+    void* Window::Native() const { return mWindow; }
 
     b8 Window::ShouldClose() { return glfwWindowShouldClose(reinterpret_cast<GLFWwindow*>(mWindow)); }
 

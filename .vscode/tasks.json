@@ -9,7 +9,7 @@
                 "-S${workspaceFolder}/SnowEditor/",
                 "-B${workspaceFolder}/bin/SnowEditor/",
                 "-DCMAKE_BUILD_TYPE=Debug",
-                "-GMinGW Makefiles"
+                "-GVisual Studio 17 2022"
             ],
             "isBackground": true,
             "problemMatcher": []

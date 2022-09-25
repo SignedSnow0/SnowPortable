@@ -31,4 +31,8 @@ typedef u32 b32;
 #define SNOW_MACOS
 #endif
 
+#ifndef NDEBUG
+#define SNOW_DEBUG
+#endif
+
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte");

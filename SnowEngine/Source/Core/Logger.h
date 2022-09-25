@@ -27,7 +27,7 @@ namespace Snow {
         template<typename... Args>
         static void Log(const LogLevel& level, u32 line, const std::string& file, const std::string& message, Args&&... args) {
             static std::string prefix{ "{} | {}] " };
-            std::string out = prefix + message;
+            const std::string out = prefix + message;
 
             switch (level) {
             case LogLevel::Trace:

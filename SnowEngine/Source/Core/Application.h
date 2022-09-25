@@ -1,5 +1,5 @@
 #pragma once
-#include "Platform/Window.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/GraphicsCore.h"
 
 namespace Snow {
@@ -19,6 +19,6 @@ namespace Snow {
         void Run();
 
     private:
-        Window* mWindow{ nullptr };
+        RenderTarget* mRenderTarget;
     };
 }

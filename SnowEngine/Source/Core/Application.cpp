@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Logger.h"
+#include "Graphics/Rhi/Surface.h"
 
 namespace Snow {
     Application::Application(const AppInfo& info) {
@@ -9,23 +10,33 @@ namespace Snow {
 
         LOG_INFO("Application created");
 
-        mWindow = new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight);
+        mRenderTarget = new RenderTarget(new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight));
+
+        Graphics::CreateDefaultResources(mRenderTarget->GetSurface());
     }
 
     Application::~Application() {
+        delete mRenderTarget;
+
         Graphics::Shutdown();
         Window::Shutdown();
         Logger::Shutdown();
     }
     
     void Application::Run() {
-        while (mWindow) {
+        while (true) {
             Window::PollEvents();
 
-            if (mWindow->ShouldClose()) {
-                delete mWindow;
-                mWindow = nullptr;
+            if (mRenderTarget->GetWindow()->ShouldClose()) {
+                delete mRenderTarget->GetWindow();
+                return;
             }
+
+            mRenderTarget->Begin();
+
+            Graphics::DebugDraw();
+            
+            mRenderTarget->End();
         }
     }
 }

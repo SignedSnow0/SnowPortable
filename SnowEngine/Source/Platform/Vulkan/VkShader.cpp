@@ -1,5 +1,6 @@
 #include "VkShader.h"
 #include <shaderc/shaderc.hpp>
+#include <spirv_cross/spirv_glsl.hpp>
 #include "Core/Utils.h"
 #include "Core/Logger.h"
 #include "VkCore.h"
@@ -29,7 +30,30 @@ namespace Snow {
         }
     }
 
+    VkShaderLayout::VkShaderLayout(const std::map<bindingLocation, VkShaderResource>& resources)
+        : mResources{ resources } {
+        std::vector<vk::DescriptorSetLayoutBinding> bidings{ resources.size() };
+        u32 i{ 0 };
+        for (const auto& [location, resource] : resources) {
+            bidings[i++] = resource.Description;
+        }
+
+        vk::DescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.bindingCount = static_cast<u32>(bidings.size());
+        layoutInfo.pBindings = bidings.data();
+
+        mLayout = VkCore::Instance()->Device().createDescriptorSetLayout(layoutInfo);
+    }
+
+    VkShaderLayout::~VkShaderLayout() {
+        VkCore::Instance()->Device().destroyDescriptorSetLayout(mLayout);
+    }
+
+    vk::DescriptorSetLayout VkShaderLayout::Layout() const { return mLayout; }
+
     VkShader::VkShader(const std::vector<std::pair<std::filesystem::path, ShaderStage>>& shaders) {
+        std::map<setLocation, std::map<bindingLocation, VkShaderResource>> reflection{};
+
         for (const auto& [file, stage] : shaders) {
             vk::ShaderStageFlagBits vkStage{ GetVkShaderStage(stage) };
             
@@ -38,7 +62,18 @@ namespace Snow {
                 continue;
             }
 
-            mShaderModules.insert({ vkStage, CompileShader(file, vkStage) });
+            auto byteCode = CompileShader(file, vkStage);
+
+            vk::ShaderModuleCreateInfo createInfo{};
+            createInfo.codeSize = static_cast<u32>(byteCode.size()) * sizeof(u32);
+            createInfo.pCode = byteCode.data();
+            mShaderModules.insert({ vkStage, VkCore::Instance()->Device().createShaderModule(createInfo) });
+
+            ReflectShader(byteCode, vkStage, reflection);
+        }
+
+        for (const auto& [set, resources] : reflection) {
+            mLayouts.insert({ set, VkShaderLayout(resources) });
         }
     }
 
@@ -57,7 +92,7 @@ namespace Snow {
         return stages;
     }
 
-    vk::ShaderModule VkShader::CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage) {
+    std::vector<u32> VkShader::CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage) {
         static shaderc::Compiler compiler{};
         shaderc::CompileOptions options{};
         options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
@@ -76,12 +111,42 @@ namespace Snow {
             return {};
         }
 
-        std::vector<u32> spirv{ result.begin(), result.end() };
+        return { result.begin(), result.end() };
+    }
 
-        vk::ShaderModuleCreateInfo createInfo{};
-        createInfo.codeSize = static_cast<u32>(spirv.size()) * sizeof(u32);
-        createInfo.pCode = spirv.data();
+    void VkShader::ReflectShader(const std::vector<u32>& shader, vk::ShaderStageFlagBits stage, std::map<setLocation, std::map<bindingLocation, VkShaderResource>>& reflection) {
+        spirv_cross::Compiler compiler{ shader };
+        spirv_cross::ShaderResources resources{ compiler.get_shader_resources() };
 
-        return VkCore::Instance()->Device().createShaderModule(createInfo);
+        for (const auto& resource : resources.uniform_buffers) {
+            bindingLocation binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            setLocation set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+            u32 size = compiler.get_declared_struct_size(type);
+
+            vk::DescriptorSetLayoutBinding description{};
+            description.binding = binding;
+            description.descriptorType = vk::DescriptorType::eUniformBuffer;
+            description.descriptorCount = 1;
+            description.stageFlags = stage;
+            description.pImmutableSamplers = nullptr;
+
+            VkShaderResource shaderResource{};
+            shaderResource.Description = description;
+            shaderResource.Size = size;
+            shaderResource.Type = ShaderResourceType::Uniform;
+            shaderResource.Name = resource.name;
+
+            if (reflection.find(set) == reflection.end()) {
+                reflection.insert({ set, {} });
+            }
+
+            if (reflection.at(set).find(binding) == reflection.at(set).end()) {
+                reflection.at(set).insert({ binding, shaderResource });
+                continue;
+            }
+
+            LOG_WARN("Duplicate resource at set: {}, binding: {} with names: {} and: {}", set, binding, reflection.at(set).at(binding).Name, shaderResource.Name);
+        }
     }
 }

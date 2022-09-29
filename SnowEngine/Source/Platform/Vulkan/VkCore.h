@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
+#include <vk_mem_alloc.h>
 #include "Core/Common.h"
 #include "Graphics/GraphicsCore.h"
 
@@ -23,7 +24,10 @@ namespace Snow {
         vk::PhysicalDevice PhysicalDevice() const;
         vk::Device Device() const;
         const QueueFamilies& QueueFamilyIndices() const;
+        VmaAllocator Allocator() const;
 
+        void SubmitInstantCommand(std::function<void(vk::CommandBuffer cmd)>&& command) const;
+        
         static const VkCore* Instance();
 
     private:
@@ -35,6 +39,8 @@ namespace Snow {
         b8 ValidatePhysicalDevice(vk::PhysicalDevice device, QueueFamilies& outFamilies);
         void CreatePhysicalDevice();
         void CreateDevice();
+        void CreateAllocator();
+        void CreateCommandPool();
 
         vk::Instance mInstance;
         b8 mValidationEnabled{ false };
@@ -42,7 +48,9 @@ namespace Snow {
         QueueFamilies mQueues;
         vk::PhysicalDevice mPhysicalDevice;
         vk::Device mDevice;
-        
+        VmaAllocator mAllocator;
+        vk::CommandPool mCommandPool;
+
         static VkCore* sInstance;
     };
 }

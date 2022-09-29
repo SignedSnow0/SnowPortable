@@ -3,6 +3,7 @@
 #include "VkRenderPass.h"
 #include "VkShader.h"
 #include "VkSurface.h"
+#include "VkBuffers.h"
 
 namespace Snow {
     VkPipeline::VkPipeline(const PipelineCreateInfo& createInfo) {
@@ -18,7 +19,6 @@ namespace Snow {
 
     void VkPipeline::Bind() {
         VkSurface::BoundSurface()->CommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
-        VkSurface::BoundSurface()->CommandBuffer().draw(3, 1, 0, 0); //TODO: remove this
     }
 
     void VkPipeline::CreatePipelineLayout(const PipelineCreateInfo& info) {
@@ -41,11 +41,14 @@ namespace Snow {
         dynamicStateInfo.dynamicStateCount = static_cast<u32>(dynamicStates.size());
         dynamicStateInfo.pDynamicStates = dynamicStates.data();
 
+        auto bindingDesc = VkVertexBuffer::BindingDescription();
+        auto attributeDescs = VkVertexBuffer::AttributeDescriptions();
+
         vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.pVertexBindingDescriptions = nullptr;
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<u32>(attributeDescs.size());
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescs.data();
 
         vk::PipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
         inputAssemblyInfo.topology = vk::PrimitiveTopology::eTriangleList;

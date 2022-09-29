@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Rhi/RenderPass.h"
 #include <vulkan/vulkan.hpp>
+#include "VkSurface.h"
 
 namespace Snow {
     class VkRenderPass : public RenderPass {
@@ -18,11 +19,14 @@ namespace Snow {
 
     private:
         void CreateRenderPass(const RenderPassCreateInfo& info);
-        void CreateFramebuffers(const RenderPassCreateInfo& info);
+        void CreateFramebuffers();
+        void DestroyResizableObjects();
+        void Resize();
 
         vk::RenderPass mRenderPass;
         std::vector<vk::Framebuffer> mFramebuffers;
         u32 mWidth;
         u32 mHeight;
+        VkSurface* mSurface{ nullptr };
     };
 }

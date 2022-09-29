@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <glm/glm.hpp>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -36,3 +37,21 @@ typedef u32 b32;
 #endif
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte");
+
+typedef glm::vec2 vec2f;
+typedef glm::vec3 vec3f;
+typedef glm::vec4 vec4f;
+
+typedef glm::ivec2 vec2i;
+typedef glm::ivec3 vec3i;
+typedef glm::ivec4 vec4i;
+
+typedef glm::uvec2 vec2u;
+typedef glm::uvec3 vec3u;
+typedef glm::uvec4 vec4u;
+
+typedef glm::mat2 mat2f;
+typedef glm::mat3 mat3f;
+typedef glm::mat4 mat4f;
+
+typedef glm::quat quat;

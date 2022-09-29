@@ -25,11 +25,7 @@ namespace Snow {
 
         VkCore::Instance()->Device().destroyCommandPool(mCommandPool);
         
-        for (auto view : mSwapChainImageViews) {
-            VkCore::Instance()->Device().destroyImageView(view);
-        }
-        
-        VkCore::Instance()->Device().destroySwapchainKHR(mSwapChain);
+        DestroyResizableObjects();
         
         VkCore::Instance()->VkInstance().destroySurfaceKHR(mSurface);
     }
@@ -39,11 +35,21 @@ namespace Snow {
     u32 VkSurface::CurrentFrame() const { return mCurrentFrame; }
 
     std::vector<vk::ImageView>& VkSurface::Images() { return mSwapChainImageViews; }
-    
+
+    u32 VkSurface::Width() const { return mExtent.width; }
+
+    u32 VkSurface::Height() const { return mExtent.height; }
+
     void VkSurface::Begin() {
         VkCore::Instance()->Device().waitForFences(mBackBuffers[mRenderingFrame].InFlight, VK_TRUE, UINT64_MAX);
 
-        VkCore::Instance()->Device().acquireNextImageKHR(mSwapChain, UINT64_MAX, mBackBuffers[mRenderingFrame].ImageAvailable, nullptr, &mCurrentFrame);
+        try {
+            VkCore::Instance()->Device().acquireNextImageKHR(mSwapChain, UINT64_MAX, mBackBuffers[mRenderingFrame].ImageAvailable, nullptr, &mCurrentFrame);
+        }
+        catch (vk::OutOfDateKHRError) {
+            Resize();
+            return;
+        }
 
         VkCore::Instance()->Device().resetFences(mBackBuffers[mRenderingFrame].InFlight);
 
@@ -80,8 +86,13 @@ namespace Snow {
         presentInfo.pImageIndices = &mCurrentFrame;
         presentInfo.pResults = nullptr;
 
-        VkCore::Instance()->QueueFamilyIndices().Present.second.presentKHR(presentInfo);
-
+        try {
+            VkCore::Instance()->QueueFamilyIndices().Present.second.presentKHR(presentInfo);
+        }
+        catch (vk::OutOfDateKHRError) {
+            Resize();
+        }
+        
         mRenderingFrame = (mRenderingFrame + 1) % mBackBufferFrames;
     }
 
@@ -218,5 +229,21 @@ namespace Snow {
             mBackBuffers[i].RenderFinished = VkCore::Instance()->Device().createSemaphore(semaphoreInfo);
             mBackBuffers[i].InFlight = VkCore::Instance()->Device().createFence(fenceInfo);
         }
+    }
+
+    void VkSurface::DestroyResizableObjects() {
+        for (auto& view : mSwapChainImageViews) {
+            VkCore::Instance()->Device().destroyImageView(view);
+        }
+
+        VkCore::Instance()->Device().destroySwapchainKHR(mSwapChain);
+    }
+
+    void VkSurface::Resize() {
+        VkCore::Instance()->Device().waitIdle();
+
+        DestroyResizableObjects();
+
+        CreateSwapChain();
     }
 }

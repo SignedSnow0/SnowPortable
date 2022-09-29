@@ -1,18 +1,15 @@
 #include "VkRenderPass.h"
 #include "VkCore.h"
-#include "VkSurface.h"
 
 namespace Snow {
     VkRenderPass::VkRenderPass(const RenderPassCreateInfo& createInfo)
-        : mWidth{ createInfo.InitialWidth }, mHeight{ createInfo.InitialHeight } {
+        : mWidth{ createInfo.InitialWidth }, mHeight{ createInfo.InitialHeight }, mSurface{ reinterpret_cast<VkSurface*>(createInfo.SurfaceOutput) } {
         CreateRenderPass(createInfo);
-        CreateFramebuffers(createInfo);
+        CreateFramebuffers();
     }
 
     VkRenderPass::~VkRenderPass() {
-        for (auto framebuffer : mFramebuffers) {
-            VkCore::Instance()->Device().destroyFramebuffer(framebuffer);
-        }
+        DestroyResizableObjects();
         
         VkCore::Instance()->Device().destroyRenderPass(mRenderPass);
     }
@@ -24,6 +21,10 @@ namespace Snow {
     u32 VkRenderPass::Height() const { return mHeight; }
 
     void VkRenderPass::Begin() {
+        if (mSurface->Width() != mWidth || mSurface->Height() != mHeight) {
+            Resize();
+        }
+        
         vk::ClearValue clearColor = vk::ClearColorValue(std::array<f32, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
         
         vk::RenderPassBeginInfo renderPassInfo;
@@ -96,8 +97,8 @@ namespace Snow {
         mRenderPass = VkCore::Instance()->Device().createRenderPass(createInfo);
     }
 
-    void VkRenderPass::CreateFramebuffers(const RenderPassCreateInfo& info) {
-        std::vector<vk::ImageView> views{ reinterpret_cast<VkSurface*>(info.SurfaceOutput)->Images() };
+    void VkRenderPass::CreateFramebuffers() {
+        std::vector<vk::ImageView> views{ mSurface->Images() };
         mFramebuffers.resize(views.size());
 
         u32 i{ 0 };
@@ -105,13 +106,27 @@ namespace Snow {
             vk::FramebufferCreateInfo createInfo;
             createInfo.renderPass = mRenderPass;
             createInfo.attachmentCount = 1;
-            createInfo.width = mWidth;
-            createInfo.height = mHeight;
+            createInfo.width = mSurface->Width();
+            createInfo.height = mSurface->Height();
             createInfo.layers = 1;
             createInfo.pAttachments = &view;
 
             mFramebuffers[i] = VkCore::Instance()->Device().createFramebuffer(createInfo);
             i++;
         }
+    }
+
+    void VkRenderPass::DestroyResizableObjects() {
+        for (auto fb : mFramebuffers) {
+            VkCore::Instance()->Device().destroyFramebuffer(fb);
+        }
+    }
+
+    void VkRenderPass::Resize() {
+        DestroyResizableObjects();
+
+        mWidth = mSurface->Width();
+        mHeight = mSurface->Height();
+        CreateFramebuffers();
     }
 }

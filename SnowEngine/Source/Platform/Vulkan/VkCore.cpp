@@ -1,3 +1,4 @@
+#define VMA_IMPLEMENTATION
 #include "VkCore.h"
 #include <set>
 #include <GLFW/glfw3.h>
@@ -76,6 +77,8 @@ namespace Snow {
         CreateInstance();
         CreatePhysicalDevice();
         CreateDevice();
+        CreateAllocator();
+        CreateCommandPool();
 
         sInstance = this;
     }
@@ -85,6 +88,10 @@ namespace Snow {
             return;
         }
 
+        mDevice.destroyCommandPool(mCommandPool);
+
+        vmaDestroyAllocator(mAllocator);
+        
         mDevice.destroy();
         
         if (mValidationEnabled)
@@ -103,8 +110,37 @@ namespace Snow {
 
     const QueueFamilies& VkCore::QueueFamilyIndices() const { return mQueues; }
 
+    void VkCore::SubmitInstantCommand(std::function<void(vk::CommandBuffer)>&& command) const {
+        vk::CommandBufferAllocateInfo allocInfo{};
+        allocInfo.level = vk::CommandBufferLevel::ePrimary;
+        allocInfo.commandPool = mCommandPool;
+        allocInfo.commandBufferCount = 1;
+
+        vk::CommandBuffer commandBuffer{ mDevice.allocateCommandBuffers(allocInfo)[0] };
+
+        vk::CommandBufferBeginInfo beginInfo{};
+        beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+        commandBuffer.begin(beginInfo);
+
+        command(commandBuffer);
+
+        commandBuffer.end();
+
+        vk::SubmitInfo submitInfo{};
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+        
+        mQueues.Graphics.second.submit(submitInfo, nullptr);
+        mQueues.Graphics.second.waitIdle();
+
+        mDevice.resetCommandPool(mCommandPool);
+    }
+
     const VkCore* VkCore::Instance() { return sInstance; }
 
+    VmaAllocator VkCore::Allocator() const { return mAllocator; }
+    
     std::vector<const char*> VkCore::GetInstanceLayers() {
         std::vector<const char*> layers{};
 
@@ -261,5 +297,22 @@ namespace Snow {
 
         mQueues.Graphics.second = mDevice.getQueue(mQueues.Graphics.first, 0);
         mQueues.Present.second = mDevice.getQueue(mQueues.Present.first, 0);
+    }
+
+    void VkCore::CreateAllocator() {
+        VmaAllocatorCreateInfo createInfo{};
+        createInfo.physicalDevice = mPhysicalDevice;
+        createInfo.device = mDevice;
+        createInfo.instance = mInstance;
+
+        vmaCreateAllocator(&createInfo, &mAllocator);
+    }
+
+    void VkCore::CreateCommandPool() {
+        vk::CommandPoolCreateInfo createInfo{};
+        createInfo.queueFamilyIndex = mQueues.Graphics.first;
+        createInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+
+        mCommandPool = mDevice.createCommandPool(createInfo);
     }
 }

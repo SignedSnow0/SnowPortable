@@ -11,7 +11,9 @@ namespace Snow {
         vk::CommandBuffer CommandBuffer() const;
         u32 CurrentFrame() const;
         std::vector<vk::ImageView>& Images();
-        
+        u32 Width() const;
+        u32 Height() const;
+
         virtual void Begin() override;
         virtual void End() override;
         
@@ -25,6 +27,8 @@ namespace Snow {
         void CreateImageViews();
         void CreateCommandPool();
         void CreateSyncObjects();
+        void DestroyResizableObjects();
+        void Resize();
 
         vk::SurfaceKHR mSurface;
         vk::SurfaceFormatKHR mSurfaceFormat; //format.format is same as image format

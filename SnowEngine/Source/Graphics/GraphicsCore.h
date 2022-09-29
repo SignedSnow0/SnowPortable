@@ -4,6 +4,7 @@
 #include "Graphics/Rhi/RenderPass.h"
 #include "Graphics/Rhi/Pipeline.h"
 #include "Graphics/Rhi/Surface.h"
+#include "Graphics/Rhi/Buffers.h"
 
 namespace Snow {
     enum class GraphicsAPI : u32 {
@@ -29,6 +30,8 @@ namespace Snow {
             Shader* ShaderProgram;
             RenderPass* TargetPass;
             Pipeline* GraphicsPipeline;
+            VertexBuffer* VertexBuffer;
+            IndexBuffer* IndexBuffer;
         } mDefaultResources;
 
         GraphicsAPI mApi;

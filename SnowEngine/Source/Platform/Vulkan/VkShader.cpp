@@ -7,8 +7,10 @@
 
 #ifdef SNOW_DEBUG
 #pragma comment(lib, "shaderc_combinedd.lib")
+#pragma comment(lib, "spirv-cross-cored.lib")
 #else
 #pragma comment(lib, "shaderc_combined.lib")
+#pragma comment(lib, "spirv-cross-core.lib")
 #endif
 
 namespace Snow {
@@ -51,6 +53,8 @@ namespace Snow {
 
     vk::DescriptorSetLayout VkShaderLayout::Layout() const { return mLayout; }
 
+    const std::map<bindingLocation, VkShaderResource>& VkShaderLayout::Resources() const { return mResources; }
+
     VkShader::VkShader(const std::vector<std::pair<std::filesystem::path, ShaderStage>>& shaders) {
         std::map<setLocation, std::map<bindingLocation, VkShaderResource>> reflection{};
 
@@ -73,11 +77,15 @@ namespace Snow {
         }
 
         for (const auto& [set, resources] : reflection) {
-            mLayouts.insert({ set, VkShaderLayout(resources) });
+            mLayouts.insert({ set, new VkShaderLayout(resources) });
         }
     }
 
     VkShader::~VkShader() {
+        for (const auto& [set, layout] : mLayouts) {
+            delete layout;
+        }
+        
         for (const auto& [stage, module] : mShaderModules) {
             VkCore::Instance()->Device().destroyShaderModule(module);
         }
@@ -90,6 +98,17 @@ namespace Snow {
         }
 
         return stages;
+    }
+
+    VkShaderLayout* VkShader::Layout(setLocation set) const { return mLayouts.at(set); }
+
+    std::vector<vk::DescriptorSetLayout> VkShader::DescriptorLayouts() const {
+        std::vector<vk::DescriptorSetLayout> layouts{};
+        for (const auto& [set, layout] : mLayouts) {
+            layouts.push_back(layout->Layout());
+        }
+
+        return layouts;
     }
 
     std::vector<u32> VkShader::CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage) {
@@ -122,7 +141,7 @@ namespace Snow {
             bindingLocation binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             setLocation set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-            u32 size = compiler.get_declared_struct_size(type);
+            u32 size = static_cast<u32>(compiler.get_declared_struct_size(type));
 
             vk::DescriptorSetLayoutBinding description{};
             description.binding = binding;

@@ -97,4 +97,22 @@ namespace Snow {
     void VkIndexBuffer::Draw() const {
         VkSurface::BoundSurface()->CommandBuffer().drawIndexed(mCount, 1, 0, 0, 0);
     }
+
+    VkUniformBuffer::VkUniformBuffer(u64 size, u32 frameCount) {
+        for (u32 i{ 0 }; i < frameCount; i++) {
+            mBuffers.push_back(new VkBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU));
+        }
+    }
+
+    VkUniformBuffer::~VkUniformBuffer() {
+        for (auto buffer : mBuffers) {
+            delete buffer;
+        }
+    }
+
+    const vk::Buffer VkUniformBuffer::Buffer(u32 frameIndex) const { return mBuffers[frameIndex]->Buffer(); }
+
+    void VkUniformBuffer::SetData(const void* data, u32 frameIndex) const {
+        mBuffers[frameIndex]->InsertData(data);
+    }
 }

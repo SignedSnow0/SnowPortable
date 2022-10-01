@@ -24,6 +24,7 @@ namespace Snow {
         ~VkShaderLayout();
         
         vk::DescriptorSetLayout Layout() const;
+        const std::map<bindingLocation, VkShaderResource>& Resources() const;
 
     private:
         vk::DescriptorSetLayout mLayout;
@@ -36,12 +37,14 @@ namespace Snow {
         virtual ~VkShader() override;
 
         std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages() const;
+        VkShaderLayout* Layout(setLocation set) const;
+        std::vector<vk::DescriptorSetLayout> DescriptorLayouts() const;
 
     private:
         std::vector<u32> CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage);
         void ReflectShader(const std::vector<u32>& shader, vk::ShaderStageFlagBits stage, std::map<setLocation, std::map<bindingLocation, VkShaderResource>>& reflection);
         
         std::map<vk::ShaderStageFlagBits, vk::ShaderModule> mShaderModules;
-        std::map<setLocation, VkShaderLayout> mLayouts;
+        std::map<setLocation, VkShaderLayout*> mLayouts;
     };
 }

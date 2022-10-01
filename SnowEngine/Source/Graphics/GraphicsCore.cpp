@@ -47,6 +47,8 @@ namespace Snow {
             return;
         }
 
+        delete sInstance->mDefaultResources.DescriptorSet;
+        
         delete sInstance->mDefaultResources.VertexBuffer;
         delete sInstance->mDefaultResources.IndexBuffer;
 
@@ -73,12 +75,26 @@ namespace Snow {
 
         sInstance->mDefaultResources.VertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size());
         sInstance->mDefaultResources.IndexBuffer = IndexBuffer::Create(indices.data(), indices.size());
+
+        sInstance->mDefaultResources.DescriptorSet = sInstance->mDefaultResources.GraphicsPipeline->CreateDescriptorSet(0);
     }
 
     void Graphics::DebugDraw() {
         //TODO: remove this
         sInstance->mDefaultResources.TargetPass->Begin();
         sInstance->mDefaultResources.GraphicsPipeline->Bind();
+
+        sInstance->mDefaultResources.DescriptorSet->Bind();
+
+        static struct Camera{
+            mat4f View;
+            mat4f Projection;
+        } camera;
+
+        camera.View = glm::lookAt(vec3f{ 2.0f, 2.0f, 2.0f }, vec3f{ 0.0f, 0.0f, 0.0f }, vec3f{ 0.0f, 0.0f, 1.0f });
+        camera.Projection = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 10.0f);
+
+        sInstance->mDefaultResources.DescriptorSet->SetUniform("Camera", &camera);
 
         sInstance->mDefaultResources.VertexBuffer->Bind();
         sInstance->mDefaultResources.IndexBuffer->Bind();

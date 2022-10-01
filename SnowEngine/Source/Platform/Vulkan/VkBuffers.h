@@ -46,4 +46,17 @@ namespace Snow {
     private:
         u64 mCount{ 0 };
     };
+
+    class VkUniformBuffer {
+    public:
+        VkUniformBuffer(u64 size, u32 frameCount);
+        ~VkUniformBuffer();
+
+        const vk::Buffer Buffer(u32 frameIndex) const;
+
+        void SetData(const void* data, u32 frameIndex) const;
+
+    private:
+        std::vector<VkBuffer*> mBuffers;
+    };
 }

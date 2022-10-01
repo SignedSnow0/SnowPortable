@@ -11,6 +11,7 @@ add_library(SnowEngine Source/Core/Application.cpp
                        Source/Core/Utils.cpp
                        
                        Source/Graphics/Rhi/Buffers.cpp
+                       Source/Graphics/Rhi/DescriptorSet.cpp
                        Source/Graphics/Rhi/Pipeline.cpp
                        Source/Graphics/Rhi/RenderPass.cpp
                        Source/Graphics/Rhi/Shader.cpp
@@ -19,6 +20,7 @@ add_library(SnowEngine Source/Core/Application.cpp
                        Source/Graphics/RenderTarget.cpp
                        
                        Source/Platform/Vulkan/VkBuffers.cpp
+                       Source/Platform/Vulkan/VkDescriptorSet.cpp
                        Source/Platform/Vulkan/VkCore.cpp
                        Source/Platform/Vulkan/VkPipeline.cpp
                        Source/Platform/Vulkan/VkRenderPass.cpp

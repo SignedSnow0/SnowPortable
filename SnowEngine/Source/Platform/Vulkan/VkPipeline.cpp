@@ -4,9 +4,11 @@
 #include "VkShader.h"
 #include "VkSurface.h"
 #include "VkBuffers.h"
+#include "VkDescriptorSet.h"
 
 namespace Snow {
-    VkPipeline::VkPipeline(const PipelineCreateInfo& createInfo) {
+    VkPipeline::VkPipeline(const PipelineCreateInfo& createInfo)
+        : mShader{ reinterpret_cast<VkShader*>(createInfo.ShaderProgram) } {
         CreatePipelineLayout(createInfo);
         CreatePipeline(createInfo);
     }
@@ -21,10 +23,16 @@ namespace Snow {
         VkSurface::BoundSurface()->CommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
     }
 
+    DescriptorSet* VkPipeline::CreateDescriptorSet(u32 setIndex) {
+        return new VkDescriptorSet(mShader->Layout(setIndex), 2, mPipelineLayout); //TODO: get frame count from somewhere
+    }
+
     void VkPipeline::CreatePipelineLayout(const PipelineCreateInfo& info) {
+        auto layouts = mShader->DescriptorLayouts();
+        
         vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.setLayoutCount = 0;
-        pipelineLayoutInfo.pSetLayouts = nullptr;
+        pipelineLayoutInfo.setLayoutCount = static_cast<u32>(layouts.size());
+        pipelineLayoutInfo.pSetLayouts = layouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 0;
         pipelineLayoutInfo.pPushConstantRanges = nullptr;
 

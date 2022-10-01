@@ -5,6 +5,7 @@
 #include "Graphics/Rhi/Pipeline.h"
 #include "Graphics/Rhi/Surface.h"
 #include "Graphics/Rhi/Buffers.h"
+#include "Graphics/Rhi/DescriptorSet.h"
 
 namespace Snow {
     enum class GraphicsAPI : u32 {
@@ -32,6 +33,7 @@ namespace Snow {
             Pipeline* GraphicsPipeline;
             VertexBuffer* VertexBuffer;
             IndexBuffer* IndexBuffer;
+            DescriptorSet* DescriptorSet;
         } mDefaultResources;
 
         GraphicsAPI mApi;

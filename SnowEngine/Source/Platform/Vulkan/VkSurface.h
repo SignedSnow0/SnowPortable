@@ -10,9 +10,10 @@ namespace Snow {
         
         vk::CommandBuffer CommandBuffer() const;
         u32 CurrentFrame() const;
+        u32 ImageCount() const;
         std::vector<vk::ImageView>& Images();
-        u32 Width() const;
-        u32 Height() const;
+        virtual u32 Width() const override;
+        virtual u32 Height() const override;
 
         virtual void Begin() override;
         virtual void End() override;

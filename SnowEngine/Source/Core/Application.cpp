@@ -13,9 +13,15 @@ namespace Snow {
         mRenderTarget = new RenderTarget(new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight));
 
         Graphics::CreateDefaultResources(mRenderTarget->GetSurface());
+
+        if (info.InitGui)
+            mGuiLayer = GuiLayer::Create(*mRenderTarget);
     }
 
     Application::~Application() {
+        if (mGuiLayer)
+            delete mGuiLayer;
+
         delete mRenderTarget;
 
         Graphics::Shutdown();
@@ -36,6 +42,12 @@ namespace Snow {
 
             Graphics::DebugDraw();
             
+            if (mGuiLayer) {
+                mGuiLayer->Begin();
+
+                mGuiLayer->End();
+            }
+
             mRenderTarget->End();
         }
     }

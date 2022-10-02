@@ -8,6 +8,7 @@
                 "${workspaceFolder}/SnowEngine/External/glfw/include/",
                 "${workspaceFolder}/SnowEngine/External/glm/",
                 "${workspaceFolder}/SnowEngine/External/vma/include/",
+                "${workspaceFolder}/SnowEngine/External/imgui/",
                 "${env:VULKAN_SDK}/include/"
             ],
             "defines": [

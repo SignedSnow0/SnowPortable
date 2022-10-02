@@ -1,6 +1,8 @@
 #pragma once
+#include "Common.h"
 #include "Graphics/RenderTarget.h"
 #include "Graphics/GraphicsCore.h"
+#include "Graphics/Rhi/GuiLayer.h"
 
 namespace Snow {
     struct AppInfo {
@@ -9,6 +11,7 @@ namespace Snow {
         u32 WindowHeight;
 
         GraphicsAPI Api;
+        b8 InitGui{ false };
     };
     
     class Application {
@@ -20,5 +23,6 @@ namespace Snow {
 
     private:
         RenderTarget* mRenderTarget;
+        GuiLayer* mGuiLayer;
     };
 }

@@ -10,3 +10,6 @@
 [submodule "SnowEngine/External/vma"]
 	path = SnowEngine/External/vma
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "SnowEngine/External/imgui"]
+	path = SnowEngine/External/imgui
+	url = https://github.com/ocornut/imgui.git

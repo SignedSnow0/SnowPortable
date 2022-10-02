@@ -10,9 +10,9 @@ namespace Snow {
         delete mSurface;
     }
 
-    Window* RenderTarget::GetWindow() { return mWindow; }
+    Window* RenderTarget::GetWindow() const { return mWindow; }
 
-    Surface* RenderTarget::GetSurface() { return mSurface; }
+    Surface* RenderTarget::GetSurface() const { return mSurface; }
 
     void RenderTarget::Begin() {
         mSurface->Begin();

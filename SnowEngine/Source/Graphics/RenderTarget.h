@@ -13,8 +13,8 @@ namespace Snow {
         void Begin();
         void End();
 
-        Window* GetWindow();
-        Surface* GetSurface();
+        Window* GetWindow() const;
+        Surface* GetSurface() const;
 
     private:
         Window* mWindow{ nullptr };

@@ -34,6 +34,8 @@ namespace Snow {
 
     u32 VkSurface::CurrentFrame() const { return mCurrentFrame; }
 
+    u32 VkSurface::ImageCount() const { return mImageCount; }
+
     std::vector<vk::ImageView>& VkSurface::Images() { return mSwapChainImageViews; }
 
     u32 VkSurface::Width() const { return mExtent.width; }

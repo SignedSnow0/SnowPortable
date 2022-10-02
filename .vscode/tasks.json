@@ -6,8 +6,8 @@
             "type": "shell",
             "command": "cmake",
             "args": [
-                "-S${workspaceFolder}/SnowEditor/",
-                "-B${workspaceFolder}/bin/SnowEditor/",
+                "-S${workspaceFolder}/",
+                "-B${workspaceFolder}/bin/",
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-GVisual Studio 17 2022"
             ],
@@ -20,7 +20,7 @@
             "command": "cmake",
             "args": [
                 "--build",
-                "${workspaceFolder}/bin/SnowEditor/"
+                "${workspaceFolder}/bin/"
             ],
             "dependsOn": [
                 "Configure SnowEditor"

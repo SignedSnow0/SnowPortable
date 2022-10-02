@@ -5,7 +5,7 @@
             "name": "Debug SnowEditor (windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/SnowEditor/Debug/SnowEditor.exe",
+            "program": "${workspaceFolder}/bin/Debug/SnowEditor.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -22,7 +22,6 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "console": "externalTerminal",
             "preLaunchTask": "Build SnowEditor"
         }
     ]

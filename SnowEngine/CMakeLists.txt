@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME} Source/Core/Application.cpp
                             Source/Graphics/Rhi/Buffers.cpp
                             Source/Graphics/Rhi/DescriptorSet.cpp
                             Source/Graphics/Rhi/GuiLayer.cpp
+                            Source/Graphics/Rhi/Image.cpp
                             Source/Graphics/Rhi/Pipeline.cpp
                             Source/Graphics/Rhi/RenderPass.cpp
                             Source/Graphics/Rhi/Shader.cpp
@@ -23,6 +24,7 @@ add_library(${PROJECT_NAME} Source/Core/Application.cpp
                             Source/Platform/Vulkan/VkBuffers.cpp
                             Source/Platform/Vulkan/VkDescriptorSet.cpp
                             Source/Platform/Vulkan/VkGuiLayer.cpp
+                            Source/Platform/Vulkan/VkImage.cpp
                             Source/Platform/Vulkan/VkCore.cpp
                             Source/Platform/Vulkan/VkPipeline.cpp
                             Source/Platform/Vulkan/VkRenderPass.cpp

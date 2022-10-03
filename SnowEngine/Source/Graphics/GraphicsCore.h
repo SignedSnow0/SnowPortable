@@ -19,7 +19,7 @@ namespace Snow {
 
         static GraphicsAPI Api();
 
-        static void CreateDefaultResources(Surface* surface);
+        static RenderPass* CreateDefaultResources(Surface* surface);
         static void DebugDraw();
 
     protected:

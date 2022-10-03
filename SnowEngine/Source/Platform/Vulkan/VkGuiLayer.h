@@ -9,7 +9,7 @@
 namespace Snow {
     class VkGuiLayer : public GuiLayer {
     public:
-        VkGuiLayer(const RenderTarget& rt);
+        VkGuiLayer(const RenderTarget& rt, RenderPass* scene);
         virtual ~VkGuiLayer() override;
 
         virtual void Begin() override;
@@ -21,6 +21,7 @@ namespace Snow {
 
         vk::DescriptorPool mDescriptorPool;
         VkRenderPass* mRenderPass;
+        VkRenderPass* mSceneRenderPass;
         std::vector<ImTextureID> mTextures;
         vk::Sampler mSampler;
     };

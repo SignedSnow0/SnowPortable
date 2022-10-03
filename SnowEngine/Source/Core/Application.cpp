@@ -12,10 +12,10 @@ namespace Snow {
 
         mRenderTarget = new RenderTarget(new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight));
 
-        Graphics::CreateDefaultResources(mRenderTarget->GetSurface());
+        auto* scenePass = Graphics::CreateDefaultResources(mRenderTarget->GetSurface());
 
         if (info.InitGui)
-            mGuiLayer = GuiLayer::Create(*mRenderTarget);
+            mGuiLayer = GuiLayer::Create(*mRenderTarget, scenePass);
     }
 
     Application::~Application() {

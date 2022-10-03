@@ -3,11 +3,19 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include "VkCore.h"
+#include "Core/Logger.h"
 
 namespace Snow {
-    VkGuiLayer::VkGuiLayer(const RenderTarget& rt) {
+    VkGuiLayer::VkGuiLayer(const RenderTarget& rt, RenderPass* scene)
+    : mSceneRenderPass{ reinterpret_cast<VkRenderPass*>(scene) } {
         CreateResources(rt.GetSurface());
         InitImGui(rt);
+
+        u32 imageCount{ reinterpret_cast<VkSurface*>(rt.GetSurface())->ImageCount() };
+        mTextures.resize(imageCount);
+        for (u32 i{ 0 }; i < imageCount; i++) {
+            mTextures[i] = scene->Images()[i]->GuiId();
+        }
     }
 
     VkGuiLayer::~VkGuiLayer() {
@@ -27,9 +35,35 @@ namespace Snow {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::DockSpaceOverViewport();
+        ImGuiID dockspace{ ImGui::DockSpaceOverViewport() };
 
         ImGui::ShowDemoWindow();
+
+        ImGui::SetNextWindowDockID(dockspace);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+        ImGuiWindowClass windowClass{};
+        windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_AutoHideTabBar;
+        ImGui::SetNextWindowClass(&windowClass);
+        if (ImGui::Begin("Scene Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+            auto [windowWidth, windowHeight] = ImGui::GetWindowSize();
+            b8 resized{ false };
+            if ((mSceneRenderPass->Width() != windowWidth || mSceneRenderPass->Height() != windowHeight) && !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+                mSceneRenderPass->Resize(static_cast<u32>(windowWidth), static_cast<u32>(windowHeight));
+                VkSurface::BoundSurface()->AddToDeletionQueue([this](u32 frameIndex) {
+                    mTextures[frameIndex] = mSceneRenderPass->Images()[frameIndex]->GuiId();
+                });
+                resized = true;
+            }
+           
+            if (!resized) {
+                ImGui::Image(mTextures[VkSurface::BoundSurface()->CurrentFrame()], ImGui::GetWindowSize());
+            }
+            static ImVec2 textSize{ ImGui::CalcTextSize("0000 x 0000") };
+            ImGui::SetCursorPos({ windowWidth - textSize.x - 3, 3 });
+            ImGui::Text("%u x %u", mSceneRenderPass->Width(), mSceneRenderPass->Height());
+        }
+        ImGui::End();
+        ImGui::PopStyleVar();
     }
 
     void VkGuiLayer::End() {
@@ -89,7 +123,7 @@ namespace Snow {
 
         mSampler = VkCore::Instance()->Device().createSampler(samplerInfo);
 
-        mRenderPass = new VkRenderPass({ surface->Width(), surface->Height(), 2, surface });
+        mRenderPass = new VkRenderPass({ RenderPassUsage::Presentation, surface->Width(), surface->Height(), 2, surface });
     }
 
     void VkGuiLayer::InitImGui(const RenderTarget& rt) {
@@ -132,6 +166,5 @@ namespace Snow {
         });
 
         ImGui_ImplVulkan_DestroyFontUploadObjects();
-
     }
 }

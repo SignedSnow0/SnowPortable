@@ -63,13 +63,13 @@ namespace Snow {
 
     GraphicsAPI Graphics::Api() { return sInstance->mApi; }
 
-    void Graphics::CreateDefaultResources(Surface* surface) {
+    RenderPass* Graphics::CreateDefaultResources(Surface* surface) {
         sInstance->mDefaultResources.ShaderProgram = Shader::Create({
             { Utils::GetShadersPath() / "default.vert", ShaderStage::Vertex },
             { Utils::GetShadersPath() / "default.frag", ShaderStage::Fragment }
         });
 
-        sInstance->mDefaultResources.TargetPass = RenderPass::Create({ 1280, 720, 2, surface });
+        sInstance->mDefaultResources.TargetPass = RenderPass::Create({ RenderPassUsage::Image, surface->Width(), surface->Height(), 2, nullptr });
 
         sInstance->mDefaultResources.GraphicsPipeline = Pipeline::Create({ sInstance->mDefaultResources.ShaderProgram, sInstance->mDefaultResources.TargetPass });
 
@@ -77,6 +77,8 @@ namespace Snow {
         sInstance->mDefaultResources.IndexBuffer = IndexBuffer::Create(indices.data(), indices.size());
 
         sInstance->mDefaultResources.DescriptorSet = sInstance->mDefaultResources.GraphicsPipeline->CreateDescriptorSet(0);
+
+        return sInstance->mDefaultResources.TargetPass;
     }
 
     void Graphics::DebugDraw() {

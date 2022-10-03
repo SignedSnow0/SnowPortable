@@ -96,6 +96,20 @@ namespace Snow {
         }
         
         mRenderingFrame = (mRenderingFrame + 1) % mBackBufferFrames;
+
+        for (u32 i{ 0 }; i < mDeletionQueue.size(); i++) {
+            auto& [count, func] = mDeletionQueue[i];
+            func((mCurrentFrame - 1) % mImageCount);
+            count++;
+            if (count == mImageCount) {
+                mDeletionQueue.erase(mDeletionQueue.begin() + i);
+                i--;
+            }
+        }
+    }
+
+    void VkSurface::AddToDeletionQueue(std::function<void(u32 frameIndex)> func) {
+        mDeletionQueue.push_back({ 0, func });
     }
 
     VkSurface* VkSurface::BoundSurface() { return sBoundSurface; }

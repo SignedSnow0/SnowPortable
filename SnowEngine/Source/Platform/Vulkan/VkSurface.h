@@ -17,6 +17,7 @@ namespace Snow {
 
         virtual void Begin() override;
         virtual void End() override;
+        void AddToDeletionQueue(std::function<void(u32 frameIndex)> fn);
         
         static VkSurface* BoundSurface();
         
@@ -55,7 +56,8 @@ namespace Snow {
         u32 mRenderingFrame{ 0 };
         //Number of frames in bakc buffer (swapchain - 1 for presentation)
         u32 mBackBufferFrames;
-         
+        std::vector<std::pair<u32, std::function<void(u32 frameIndex)>>> mDeletionQueue;
+
         static VkSurface* sBoundSurface;
     };
 }

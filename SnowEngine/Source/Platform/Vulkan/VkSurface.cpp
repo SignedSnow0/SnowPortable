@@ -44,13 +44,23 @@ namespace Snow {
 
     void VkSurface::Begin() {
         VkCore::Instance()->Device().waitForFences(mBackBuffers[mRenderingFrame].InFlight, VK_TRUE, UINT64_MAX);
-
+        
         try {
             VkCore::Instance()->Device().acquireNextImageKHR(mSwapChain, UINT64_MAX, mBackBuffers[mRenderingFrame].ImageAvailable, nullptr, &mCurrentFrame);
         }
         catch (vk::OutOfDateKHRError) {
             Resize();
             return;
+        }
+
+        for (u32 i{ 0 }; i < mDeletionQueue.size(); i++) {
+            auto& [count, func] = mDeletionQueue[i];
+            func(mCurrentFrame);
+            count++;
+            if (count == mImageCount) {
+                mDeletionQueue.erase(mDeletionQueue.begin() + i);
+                i--;
+            }
         }
 
         VkCore::Instance()->Device().resetFences(mBackBuffers[mRenderingFrame].InFlight);
@@ -96,16 +106,6 @@ namespace Snow {
         }
         
         mRenderingFrame = (mRenderingFrame + 1) % mBackBufferFrames;
-
-        for (u32 i{ 0 }; i < mDeletionQueue.size(); i++) {
-            auto& [count, func] = mDeletionQueue[i];
-            func((mCurrentFrame - 1) % mImageCount);
-            count++;
-            if (count == mImageCount) {
-                mDeletionQueue.erase(mDeletionQueue.begin() + i);
-                i--;
-            }
-        }
     }
 
     void VkSurface::AddToDeletionQueue(std::function<void(u32 frameIndex)> func) {

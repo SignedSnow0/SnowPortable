@@ -22,7 +22,8 @@ namespace Snow {
     private:
         void CreateRenderPass(const RenderPassCreateInfo& info);
         void CreateFramebuffers(u32 frame);
-
+        void ResizeSurface();
+        
         vk::RenderPass mRenderPass;
         std::vector<vk::Framebuffer> mFramebuffers;
         std::vector<Image*> mImages;

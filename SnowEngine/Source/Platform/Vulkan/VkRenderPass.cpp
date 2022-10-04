@@ -1,6 +1,7 @@
 #include "VkRenderPass.h"
 #include "VkCore.h"
 #include "VkImage.h"
+#include "Core/Logger.h"
 
 namespace Snow {
     VkRenderPass::VkRenderPass(const RenderPassCreateInfo& createInfo)
@@ -41,11 +42,11 @@ namespace Snow {
 
     void VkRenderPass::Begin() {
         if (mSurface && (mSurface->Width() != mWidth || mSurface->Height() != mHeight)) {
-            Resize(mSurface->Width(), mSurface->Height());
+            ResizeSurface();
         }
         
         vk::ClearValue clearColor = vk::ClearColorValue(std::array<f32, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
-        
+
         vk::RenderPassBeginInfo renderPassInfo;
         renderPassInfo.renderPass = mRenderPass;
         renderPassInfo.framebuffer = mFramebuffers[VkSurface::BoundSurface()->CurrentFrame()];
@@ -157,5 +158,16 @@ namespace Snow {
         createInfo.pAttachments = &view;
 
         mFramebuffers[frame] = VkCore::Instance()->Device().createFramebuffer(createInfo);
+    }
+
+    void VkRenderPass::ResizeSurface() {
+        mWidth = mSurface->Width();
+        mHeight = mSurface->Height();
+
+        for (u32 i{ 0 }; i < mSurface->ImageCount();i++) {
+            VkCore::Instance()->Device().destroyFramebuffer(mFramebuffers[i]);
+            
+            CreateFramebuffers(i);
+        }
     }
 }

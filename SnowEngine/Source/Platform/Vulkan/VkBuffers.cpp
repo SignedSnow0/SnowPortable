@@ -41,7 +41,7 @@ namespace Snow {
     }
 
     VkVertexBuffer::VkVertexBuffer(const Vertex* vertices, u64 count)
-        : VkBuffer(sizeof(Vertex) * count, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY), mCount(count) {
+        : VkBuffer(sizeof(Vertex)* count, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY), mCount{ count } {
         VkBuffer stagingBuffer(sizeof(Vertex) * count, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_ONLY);
         stagingBuffer.InsertData(vertices);
 
@@ -83,7 +83,7 @@ namespace Snow {
     }
 
     VkIndexBuffer::VkIndexBuffer(const u32* indices, u64 count)
-        : VkBuffer(sizeof(u32) * count, vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY), mCount(count) {
+        : VkBuffer(sizeof(u32)* count, vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY), mCount{ count } {
         VkBuffer stagingBuffer(sizeof(u32) * count, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_ONLY);
         stagingBuffer.InsertData(indices);
 

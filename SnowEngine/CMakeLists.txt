@@ -7,7 +7,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 #add source files
 add_library(${PROJECT_NAME} Source/Core/Application.cpp
+                            Source/Core/Entity.cpp
                             Source/Core/Logger.cpp
+                            Source/Core/Scene.cpp
                             Source/Core/Utils.cpp
                        
                             Source/Graphics/Rhi/Buffers.cpp
@@ -20,6 +22,7 @@ add_library(${PROJECT_NAME} Source/Core/Application.cpp
                             Source/Graphics/Rhi/Surface.cpp
                             Source/Graphics/GraphicsCore.cpp
                             Source/Graphics/RenderTarget.cpp
+                            Source/Graphics/SceneRenderer.cpp
 
                             Source/Platform/Vulkan/VkBuffers.cpp
                             Source/Platform/Vulkan/VkDescriptorSet.cpp
@@ -53,6 +56,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC Source/
                                                   External/glm/ 
                                                   External/vma/include/ 
                                                   External/imgui/ 
+                                                  External/stb/ 
+                                                  External/entt/single_include/ 
                                                   $ENV{VULKAN_SDK}/include/)
 
 #link libraries

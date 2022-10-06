@@ -1,7 +1,11 @@
 #include "VkImage.h"
+#include <backends/imgui_impl_vulkan.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 #include "VkCore.h"
 #include "Core/Logger.h"
-#include <backends/imgui_impl_vulkan.h>
+#include "VkBuffers.h"
+#include "VkSurface.h"
 
 namespace Snow {
     static void ChangeLayout(::vk::Image image, u32 mipLevels, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, u32 layerCount) {
@@ -26,6 +30,22 @@ namespace Snow {
             sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
             destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
         }
+        else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
+            barrier.srcAccessMask = {};
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+
+            sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+            destinationStage = vk::PipelineStageFlagBits::eTransfer;
+        }
+        else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+
+            sourceStage = vk::PipelineStageFlagBits::eTransfer;
+            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+        }
         else {
             LOG_ERROR("No image layout transition implemented for this layout combination!");
         }
@@ -35,12 +55,17 @@ namespace Snow {
         });
     }
     
-    VkImage::VkImage(const ImageCreateInfo& createInfo) {
+    VkImage::VkImage(const ImageCreateInfo& createInfo)
+        : mUsage{ createInfo.Usage } {
         CreateImage(createInfo);
         CreateViewAndSampler(createInfo);
     }
 
     VkImage::~VkImage() {
+        if (mUsage == ImageUsage::Image) {
+            VkCore::Instance()->Device().waitIdle();
+        }
+
         VkCore::Instance()->Device().destroySampler(mSampler);
         VkCore::Instance()->Device().destroyImageView(mView);
 
@@ -62,12 +87,20 @@ namespace Snow {
     vk::Sampler VkImage::Sampler() const { return mSampler; }
 
     void VkImage::CreateImage(const ImageCreateInfo& info) {
-        vk::Extent3D extent{};
-        if (info.Usage == ImageUsage::ColorAttachment) {
-            extent.width = info.Width;
-            extent.height = info.Height;
-            extent.depth = 1;
+        i32 width = info.Width;
+        i32 height = info.Height;
+
+        stbi_uc* pixels{ nullptr };
+        b8 isFromFile{ mUsage == ImageUsage::Image && std::filesystem::exists(info.File) };
+        if (isFromFile) {
+            i32 channels{ 0 };
+            pixels = stbi_load(info.File.string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
         }
+
+        vk::Extent3D extent{};
+        extent.width = width;
+        extent.height = height;
+        extent.depth = 1;
 
         vk::ImageCreateInfo createInfo{};
         createInfo.imageType = vk::ImageType::e2D;
@@ -77,7 +110,7 @@ namespace Snow {
         createInfo.format = vk::Format::eR8G8B8A8Srgb;
         createInfo.tiling = vk::ImageTiling::eOptimal;
         createInfo.initialLayout = vk::ImageLayout::eUndefined;
-        createInfo.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment;
+        createInfo.usage = vk::ImageUsageFlagBits::eSampled | (isFromFile ? vk::ImageUsageFlagBits::eTransferDst : vk::ImageUsageFlagBits::eColorAttachment);
         createInfo.sharingMode = vk::SharingMode::eExclusive;
         createInfo.samples = vk::SampleCountFlagBits::e1;
 
@@ -86,7 +119,34 @@ namespace Snow {
 
         vmaCreateImage(VkCore::Instance()->Allocator(), reinterpret_cast<VkImageCreateInfo*>(&createInfo), &allocInfo, reinterpret_cast<::VkImage*>(&mImage), &mAllocation, nullptr);
 
-        ChangeLayout(mImage, 1, createInfo.format, vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
+        if (isFromFile) {
+            ChangeLayout(mImage, 1, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1);
+            
+            VkBuffer stagingBuffer{ width * height * (u32)4, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_ONLY };
+            stagingBuffer.InsertData(pixels);
+              
+            VkCore::Instance()->SubmitInstantCommand([&](vk::CommandBuffer cmd) {
+                vk::BufferImageCopy region{};
+                region.bufferOffset = 0;
+                region.bufferRowLength = 0;
+                region.bufferImageHeight = 0;
+                region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+                region.imageSubresource.mipLevel = 0;
+                region.imageSubresource.baseArrayLayer = 0;
+                region.imageSubresource.layerCount = 1;
+                region.imageOffset = vk::Offset3D{ 0, 0, 0 };
+                region.imageExtent = extent;
+
+                cmd.copyBufferToImage(stagingBuffer.Buffer(), mImage, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+            });
+              
+            ChangeLayout(mImage, 1, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
+            stbi_image_free(pixels);
+
+            return;
+        }
+
+        ChangeLayout(mImage, 1, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
     }
 
     void VkImage::CreateViewAndSampler(const ImageCreateInfo& info) {
@@ -99,11 +159,8 @@ namespace Snow {
             createInfo.subresourceRange.levelCount = 1;
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount = 1;
-
-            if (info.Usage == ImageUsage::ColorAttachment) {
-                createInfo.format = vk::Format::eR8G8B8A8Srgb;
-                createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-            }
+            createInfo.format = vk::Format::eR8G8B8A8Srgb;
+            createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
 
             mView = VkCore::Instance()->Device().createImageView(createInfo);
         }

@@ -8,12 +8,13 @@ namespace Snow {
         VkSurface(const Window& window);
         virtual ~VkSurface() override;
         
-        vk::CommandBuffer CommandBuffer() const;
-        u32 CurrentFrame() const;
-        u32 ImageCount() const;
-        std::vector<vk::ImageView>& Images();
+        virtual u32 ImageCount() const override;
         virtual u32 Width() const override;
         virtual u32 Height() const override;
+        vk::CommandBuffer CommandBuffer() const;
+        u32 CurrentFrame() const;
+        std::vector<vk::ImageView>& Images();
+      
 
         virtual void Begin() override;
         virtual void End() override;

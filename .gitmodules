@@ -13,3 +13,9 @@
 [submodule "SnowEngine/External/imgui"]
 	path = SnowEngine/External/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "SnowEngine/External/stb"]
+	path = SnowEngine/External/stb
+	url = https://github.com/nothings/stb.git
+[submodule "SnowEngine/External/entt"]
+	path = SnowEngine/External/entt
+	url = https://github.com/skypjack/entt.git

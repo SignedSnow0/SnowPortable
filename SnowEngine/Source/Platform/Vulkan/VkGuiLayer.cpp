@@ -3,7 +3,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include "VkCore.h"
-#include "Core/Logger.h"
+#include "Core/Utils.h"
 
 namespace Snow {
     VkGuiLayer::VkGuiLayer(const RenderTarget& rt, RenderPass* scene)
@@ -35,10 +35,15 @@ namespace Snow {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        
+        
         ImGuiID dockspace{ ImGui::DockSpaceOverViewport() };
-
-        ImGui::ShowDemoWindow();
-
+        if (ImGui::Begin("Style editor")) {
+            ImGui::ShowStyleEditor();
+        }
+        ImGui::End();
+        
         ImGui::SetNextWindowDockID(dockspace);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
         ImGuiWindowClass windowClass{};
@@ -131,6 +136,10 @@ namespace Snow {
         ImGuiIO& io{ ImGui::GetIO() };
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+        ImFont* font{ io.Fonts->AddFontFromFileTTF((Utils::GetFontsPath() / "Inter/Inter-Regular.ttf").string().c_str(), 16.0f) };
+        io.Fonts->Build();
+        io.FontDefault = font;
 
         ImGuiPlatformIO& pIo{ ImGui::GetPlatformIO() };
         pIo.Platform_CreateVkSurface = [](ImGuiViewport* vp, ImU64 instance, const void* allocator, ImU64* outSurface) {

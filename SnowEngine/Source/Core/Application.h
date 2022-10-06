@@ -1,8 +1,9 @@
 #pragma once
 #include "Common.h"
-#include "Graphics/RenderTarget.h"
 #include "Graphics/GraphicsCore.h"
 #include "Graphics/Rhi/GuiLayer.h"
+#include "Scene.h"
+#include "Graphics/SceneRenderer.h"
 
 namespace Snow {
     struct AppInfo {
@@ -21,8 +22,13 @@ namespace Snow {
         
         void Run();
 
+    protected:
+        virtual void DrawGui() { }
+
     private:
         RenderTarget* mRenderTarget;
         GuiLayer* mGuiLayer;
+        Scene* mScene;
+        SceneRenderer* mSceneRenderer;
     };
 }

@@ -93,6 +93,7 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "shared_mutex": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "queue": "cpp"
     }
 }

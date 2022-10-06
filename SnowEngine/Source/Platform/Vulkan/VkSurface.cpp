@@ -43,6 +43,8 @@ namespace Snow {
     u32 VkSurface::Height() const { return mExtent.height; }
 
     void VkSurface::Begin() {
+        sBoundSurface = this;
+        
         VkCore::Instance()->Device().waitForFences(mBackBuffers[mRenderingFrame].InFlight, VK_TRUE, UINT64_MAX);
         
         try {
@@ -68,8 +70,6 @@ namespace Snow {
         static vk::CommandBufferBeginInfo beginInfo;
 
         mBackBuffers[mRenderingFrame].CmdBuffer.begin(beginInfo);
-
-        sBoundSurface = this;
     }
 
     void VkSurface::End() {

@@ -9,6 +9,8 @@
                 "${workspaceFolder}/SnowEngine/External/glm/",
                 "${workspaceFolder}/SnowEngine/External/vma/include/",
                 "${workspaceFolder}/SnowEngine/External/imgui/",
+                "${workspaceFolder}/SnowEngine/External/stb/",
+                "${workspaceFolder}/SnowEngine/External/entt/single_include/",
                 "${env:VULKAN_SDK}/include/"
             ],
             "defines": [

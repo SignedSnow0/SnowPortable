@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "Logger.h"
-#include "Graphics/Rhi/Surface.h"
+#include "Graphics/RenderTarget.h"
+#include "Entity.h"//TODO: Remove this
 
 namespace Snow {
     Application::Application(const AppInfo& info) {
@@ -12,13 +13,21 @@ namespace Snow {
 
         mRenderTarget = new RenderTarget(new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight));
 
-        auto* scenePass = Graphics::CreateDefaultResources(mRenderTarget->GetSurface());
+        mScene = new Scene();
+        mSceneRenderer = new SceneRenderer(mScene, *mRenderTarget);
 
-        if (info.InitGui)
-            mGuiLayer = GuiLayer::Create(*mRenderTarget, scenePass);
+        if (info.InitGui) {
+            mGuiLayer = GuiLayer::Create(*mRenderTarget, mSceneRenderer->OutputRenderPass());
+            mGuiLayer->DarkTheme();
+        }
+
+        mScene->CreateEntity(); //TODO: Remove this
     }
 
     Application::~Application() {
+        delete mSceneRenderer;
+        delete mScene;
+
         if (mGuiLayer)
             delete mGuiLayer;
 
@@ -40,11 +49,13 @@ namespace Snow {
 
             mRenderTarget->Begin();
 
-            Graphics::DebugDraw();
+            mSceneRenderer->Render();
             
             if (mGuiLayer) {
                 mGuiLayer->Begin();
 
+                DrawGui();
+                
                 mGuiLayer->End();
             }
 

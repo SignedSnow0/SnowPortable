@@ -10,5 +10,7 @@ namespace Snow {
 
         virtual void Begin() = 0;
         virtual void End() = 0;
+
+        void DarkTheme() const;
     };
 }

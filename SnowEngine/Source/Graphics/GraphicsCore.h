@@ -19,7 +19,6 @@ namespace Snow {
 
         static GraphicsAPI Api();
 
-        static RenderPass* CreateDefaultResources(Surface* surface);
         static void DebugDraw();
 
     protected:
@@ -27,15 +26,6 @@ namespace Snow {
         virtual ~Graphics() = default;
         
     private:
-        struct GraphicsResources {
-            Shader* ShaderProgram;
-            RenderPass* TargetPass;
-            Pipeline* GraphicsPipeline;
-            VertexBuffer* VertexBuffer;
-            IndexBuffer* IndexBuffer;
-            DescriptorSet* DescriptorSet;
-        } mDefaultResources;
-
         GraphicsAPI mApi;
         
         static Graphics* sInstance;

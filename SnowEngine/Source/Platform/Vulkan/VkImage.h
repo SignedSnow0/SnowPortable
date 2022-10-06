@@ -24,5 +24,6 @@ namespace Snow {
         vk::Sampler mSampler;
         VmaAllocation mAllocation;
         ImTextureID mGuiId{ nullptr };
+        ImageUsage mUsage;
     };
 }

@@ -27,5 +27,9 @@ namespace Snow {
 		std::filesystem::path GetAssetsPath() { return GetCurrentPath() / "Assets"; }
 
 		std::filesystem::path GetShadersPath() { return GetAssetsPath() / "Shaders"; }
+
+		std::filesystem::path GetFontsPath() { return GetAssetsPath() / "Fonts"; }
+
+		std::filesystem::path GetImagesPath() { return GetAssetsPath() / "Images"; }
 	}
 }

@@ -109,7 +109,7 @@ namespace Snow {
     vk::Device VkCore::Device() const { return mDevice; }
 
     const QueueFamilies& VkCore::QueueFamilyIndices() const { return mQueues; }
-
+    
     void VkCore::SubmitInstantCommand(std::function<void(vk::CommandBuffer)>&& command) const {
         vk::CommandBufferAllocateInfo allocInfo{};
         allocInfo.level = vk::CommandBufferLevel::ePrimary;

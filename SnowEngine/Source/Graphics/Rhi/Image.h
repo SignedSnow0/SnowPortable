@@ -12,8 +12,8 @@ namespace Snow {
     struct ImageCreateInfo {
         ImageUsage Usage;
         std::filesystem::path File;
-        u32 Width;
-        u32 Height;
+        u32 Width{ 0 };
+        u32 Height{ 0 };
     };
     
     class Image {

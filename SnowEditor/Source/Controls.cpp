@@ -79,10 +79,10 @@ namespace ImGui {
 	b8 Vec3fSlider(const std::string& label, vec3f& value, const vec3f& defaultValue) {
 		b8 changed{ false };
 		f32 speed{ 0.1f };
-		/*if (IsKeyDown(GLFW_KEY_LEFT_SHIFT))
-			speed = 0.01f;
-		else if (IsKeyDown(GLFW_KEY_LEFT_CONTROL))
-			speed = 1.0f;*/
+		if (Snow::Input::KeyPressed(Snow::Key::LeftShift))
+			speed = 0.001f;//NOTE: this is actually 0.01f but imgui multiplies x10 with shift key
+		else if (Snow::Input::KeyPressed(Snow::Key::LeftControl))
+			speed = 1.0f;
 		PushID(label.c_str());
 		Columns(2, nullptr, false);
 		
@@ -108,7 +108,7 @@ namespace ImGui {
 		PopStyleColor(3);
 		SameLine();
 
-		changed |= DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.3f");
+		changed |= DragFloat("##X", &value.x, speed, 0.0f, 0.0f, "%.3f");
 		PopItemWidth();
 		SameLine();
 
@@ -123,7 +123,7 @@ namespace ImGui {
 		PopStyleColor(3);
 		SameLine();
 		
-		changed |= DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.3f");
+		changed |= DragFloat("##Y", &value.y, speed, 0.0f, 0.0f, "%.3f");
 		PopItemWidth();
 		SameLine();
 
@@ -138,7 +138,7 @@ namespace ImGui {
 		PopStyleColor(3);
 		SameLine();
 		
-		changed |= DragFloat("##Z", &value.z, 0.1f, 0.0f, 0.0f, "%.3f");
+		changed |= DragFloat("##Z", &value.z, speed, 0.0f, 0.0f, "%.3f");
 		PopItemWidth();
 
 		PopStyleVar();

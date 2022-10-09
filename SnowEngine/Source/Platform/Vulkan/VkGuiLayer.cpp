@@ -37,11 +37,6 @@ namespace Snow {
         ImGui::NewFrame();
         
         ImGuiID dockspace{ ImGui::DockSpaceOverViewport() };
-        if (ImGui::Begin("Style editor")) {
-            ImGui::ShowStyleEditor();
-        }
-        ImGui::End();
-        
         ImGui::SetNextWindowDockID(dockspace);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
         ImGuiWindowClass windowClass{};

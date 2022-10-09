@@ -6,6 +6,7 @@
 #include "Rhi/DescriptorSet.h"
 #include "RenderTarget.h"
 #include "Rhi/Buffers.h"
+#include "Camera.h"
 
 namespace Snow {
     class SceneRenderer {
@@ -14,7 +15,8 @@ namespace Snow {
         ~SceneRenderer();
 
         RenderPass* OutputRenderPass();
-        
+
+        void Update();
         void Render();
 
     private:
@@ -26,5 +28,7 @@ namespace Snow {
         DescriptorSet* mDescriptorSet{ nullptr };
         VertexBuffer* mVertexBuffer{ nullptr };
         IndexBuffer* mIndexBuffer{ nullptr };
+
+        Camera mCamera;
     };
 }

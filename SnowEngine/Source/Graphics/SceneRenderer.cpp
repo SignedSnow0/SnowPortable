@@ -2,10 +2,11 @@
 #include "Core/Utils.h"
 #include "Core/Entity.h"
 #include "Core/Components.h"
+#include "Core/Input.h"
 
 namespace Snow {
     SceneRenderer::SceneRenderer(Scene* scene, RenderTarget& target)
-        : mScene{ scene } {
+        : mScene{ scene }, mCamera{ } {
         mShader = Shader::Create({
             { Utils::GetShadersPath() / "default.vert", ShaderStage::Vertex },
             { Utils::GetShadersPath() / "default.frag", ShaderStage::Fragment }
@@ -49,6 +50,28 @@ namespace Snow {
     }
 
     RenderPass* SceneRenderer::OutputRenderPass() { return mRenderPass; }
+
+    void SceneRenderer::Update() {
+        vec3f position = mCamera.mPosition;
+        
+        if (Input::KeyPressed(Key::W)) {
+            position += mCamera.mFront * 0.01f;
+        }
+        
+        if (Input::KeyPressed(Key::S)) {
+            position -= mCamera.mFront * 0.01f;
+        }
+        
+        if (Input::KeyPressed(Key::A)) {
+            position -= glm::normalize(glm::cross(mCamera.mFront, vec3f(0.0f, 1.0f, 0.0f))) * 0.01f;
+        }
+        
+        if (Input::KeyPressed(Key::D)) {
+            position += glm::normalize(glm::cross(mCamera.mFront, vec3f(0.0f, 1.0f, 0.0f))) * 0.01f;
+        }
+
+        mCamera.SetPosition(position);        
+    }
     
     void SceneRenderer::Render() {
         mRenderPass->Begin();
@@ -60,8 +83,8 @@ namespace Snow {
             mat4f Projection;
         } camera;
 
-        camera.View = glm::lookAt(vec3f{ 2.0f, 2.0f, 2.0f }, vec3f{ 0.0f, 0.0f, 0.0f }, vec3f{ 0.0f, 0.0f, -1.0f });
-        camera.Projection = glm::perspective(glm::radians(45.0f), mRenderPass->Width() / static_cast<f32>(mRenderPass->Height()), 0.1f, 10.0f);
+        camera.View = mCamera.ViewMatrix();
+        camera.Projection = mCamera.ProjectionMatrix();
 
         mDescriptorSet->SetUniform("Camera", &camera);
         

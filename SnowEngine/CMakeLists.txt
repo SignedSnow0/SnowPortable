@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(${PROJECT_NAME} Source/Core/Application.cpp
                             Source/Core/Components.cpp
                             Source/Core/Entity.cpp
+                            Source/Core/Input.cpp
                             Source/Core/Logger.cpp
                             Source/Core/Scene.cpp
                             Source/Core/Utils.cpp
@@ -21,6 +22,7 @@ add_library(${PROJECT_NAME} Source/Core/Application.cpp
                             Source/Graphics/Rhi/RenderPass.cpp
                             Source/Graphics/Rhi/Shader.cpp
                             Source/Graphics/Rhi/Surface.cpp
+                            Source/Graphics/Camera.cpp
                             Source/Graphics/GraphicsCore.cpp
                             Source/Graphics/RenderTarget.cpp
                             Source/Graphics/SceneRenderer.cpp

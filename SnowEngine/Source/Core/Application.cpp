@@ -45,6 +45,8 @@ namespace Snow {
                 return;
             }
 
+            mSceneRenderer->Update();
+            
             mRenderTarget->Begin();
 
             mSceneRenderer->Render();

@@ -11,7 +11,8 @@ namespace Snow {
 
         virtual void Bind() override;
         virtual DescriptorSet* CreateDescriptorSet(u32 setIndex) override;
-        
+        virtual void PushConstant(const std::string& name, const void* data, u32 size) override;
+
     private:
         void CreatePipelineLayout(const PipelineCreateInfo& info);
         void CreatePipeline(const PipelineCreateInfo& info);

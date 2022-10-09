@@ -15,6 +15,7 @@ namespace Snow {
         u32 InitialHeight;
         u32 ImageCount;
         Surface* SurfaceOutput;
+        b8 DepthAttachment;
     };
     
     class RenderPass {
@@ -25,7 +26,8 @@ namespace Snow {
         virtual u32 Width() const = 0;
         virtual u32 Height() const = 0;
         virtual const std::vector<Image*>& Images() const = 0;
-
+        virtual b8 HasDepth() const = 0;
+        
         virtual void Begin() = 0;
         virtual void End() = 0;
 

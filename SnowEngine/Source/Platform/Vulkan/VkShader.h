@@ -19,6 +19,13 @@ namespace Snow {
         ShaderResourceType Type;
     };
 
+    struct VkShaderPushConstant {
+        std::string Name;
+        u32 Size;
+        u32 Offset;
+        vk::PushConstantRange Range;
+    };
+
     struct VkShaderLayout {
         VkShaderLayout(const std::map<bindingLocation, VkShaderResource>& resources);
         ~VkShaderLayout();
@@ -39,6 +46,7 @@ namespace Snow {
         std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages() const;
         VkShaderLayout* Layout(setLocation set) const;
         std::vector<vk::DescriptorSetLayout> DescriptorLayouts() const;
+        const std::vector<VkShaderPushConstant>& PushConstants() const;
 
     private:
         std::vector<u32> CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage);
@@ -46,5 +54,6 @@ namespace Snow {
         
         std::map<vk::ShaderStageFlagBits, vk::ShaderModule> mShaderModules;
         std::map<setLocation, VkShaderLayout*> mLayouts;
+        std::vector<VkShaderPushConstant> mPushConstants;
     };
 }

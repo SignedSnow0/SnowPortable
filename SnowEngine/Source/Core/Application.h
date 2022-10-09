@@ -23,6 +23,8 @@ namespace Snow {
         void Run();
 
     protected:
+        Scene* ActiveScene();
+        
         virtual void DrawGui() { }
 
     private:

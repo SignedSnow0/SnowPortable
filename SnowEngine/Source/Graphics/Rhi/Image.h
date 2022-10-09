@@ -6,7 +6,8 @@
 namespace Snow {
     enum class ImageUsage : u32 {
         Image,
-        ColorAttachment
+        ColorAttachment,
+        DepthAttachment
     };
 
     struct ImageCreateInfo {

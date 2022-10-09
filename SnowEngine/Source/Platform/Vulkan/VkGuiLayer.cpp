@@ -35,8 +35,6 @@ namespace Snow {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        
         
         ImGuiID dockspace{ ImGui::DockSpaceOverViewport() };
         if (ImGui::Begin("Style editor")) {
@@ -61,7 +59,7 @@ namespace Snow {
             }
            
             if (!resized) {
-                ImGui::Image(mTextures[VkSurface::BoundSurface()->CurrentFrame()], ImGui::GetWindowSize());
+                    ImGui::Image(mTextures[VkSurface::BoundSurface()->CurrentFrame()], ImGui::GetWindowSize());
             }
             static ImVec2 textSize{ ImGui::CalcTextSize("0000 x 0000") };
             ImGui::SetCursorPos({ windowWidth - textSize.x - 3, 3 });
@@ -128,7 +126,7 @@ namespace Snow {
 
         mSampler = VkCore::Instance()->Device().createSampler(samplerInfo);
 
-        mRenderPass = new VkRenderPass({ RenderPassUsage::Presentation, surface->Width(), surface->Height(), 2, surface });
+        mRenderPass = new VkRenderPass({ RenderPassUsage::Presentation, surface->Width(), surface->Height(), 2, surface, false });
     }
 
     void VkGuiLayer::InitImGui(const RenderTarget& rt) {

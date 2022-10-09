@@ -1,9 +1,12 @@
 #include "Scene.h"
 #include "Entity.h"
+#include "Components.h"
 
 namespace Snow {
     Entity Scene::CreateEntity() {
-        return { mRegistry.create(), this };
+        Entity e{ mRegistry.create(), this };
+        e.AddComponent<TransformComponent>();
+        return e;
     }
 
     Entity Scene::GetEntity(u32 id) {

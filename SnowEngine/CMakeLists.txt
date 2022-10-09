@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 #add source files
 add_library(${PROJECT_NAME} Source/Core/Application.cpp
+                            Source/Core/Components.cpp
                             Source/Core/Entity.cpp
                             Source/Core/Logger.cpp
                             Source/Core/Scene.cpp

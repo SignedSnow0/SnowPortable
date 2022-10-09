@@ -15,6 +15,8 @@ namespace Snow {
         vk::ImageView View() const;
         vk::Sampler Sampler() const;
 
+        void ChangeLayout(vk::ImageLayout newLayout);
+        
     private:
         void CreateImage(const ImageCreateInfo& info);
         void CreateViewAndSampler(const ImageCreateInfo& info);
@@ -22,6 +24,8 @@ namespace Snow {
         vk::Image mImage;
         vk::ImageView mView;
         vk::Sampler mSampler;
+        vk::Format mFormat;
+        vk::ImageLayout mLayout;
         VmaAllocation mAllocation;
         ImTextureID mGuiId{ nullptr };
         ImageUsage mUsage;

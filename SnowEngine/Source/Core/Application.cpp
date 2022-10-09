@@ -20,8 +20,6 @@ namespace Snow {
             mGuiLayer = GuiLayer::Create(*mRenderTarget, mSceneRenderer->OutputRenderPass());
             mGuiLayer->DarkTheme();
         }
-
-        mScene->CreateEntity(); //TODO: Remove this
     }
 
     Application::~Application() {
@@ -62,4 +60,6 @@ namespace Snow {
             mRenderTarget->End();
         }
     }
+
+    Scene* Application::ActiveScene() { return mScene; }
 }

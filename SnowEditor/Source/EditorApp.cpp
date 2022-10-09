@@ -1,10 +1,13 @@
 #include "EditorApp.h"
-
+#include "Controls.h"
 
 EditorApplication::EditorApplication()
     : Application({ "Snow Editor", 1920, 1080, Snow::GraphicsAPI::Vulkan, true }),
-      mAssetsView{ std::filesystem::current_path() } {
+      mAssetsView{ std::filesystem::current_path() },
+      mEntityView{ },
+      mSceneView{ &mEntityView } {
 
+    mSceneView.SetScene(ActiveScene());
 }
 
 EditorApplication::~EditorApplication() {
@@ -21,15 +24,9 @@ void EditorApplication::DrawGui() {
         ImGui::EndMainMenuBar();
     }
 
-    if (ImGui::Begin("Scene")) {
-        
-    }
-    ImGui::End();
+    mSceneView.Draw();
 
     mAssetsView.Draw();
 
-    if (ImGui::Begin("View")) {
-        
-    }
-    ImGui::End();
+    mEntityView.Draw();
 }

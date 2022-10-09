@@ -111,6 +111,8 @@ namespace Snow {
         return layouts;
     }
 
+    const std::vector<VkShaderPushConstant>& VkShader::PushConstants() const { return mPushConstants; }
+
     std::vector<u32> VkShader::CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage) {
         static shaderc::Compiler compiler{};
         shaderc::CompileOptions options{};
@@ -137,11 +139,32 @@ namespace Snow {
         spirv_cross::Compiler compiler{ shader };
         spirv_cross::ShaderResources resources{ compiler.get_shader_resources() };
 
+        for (const auto& resource : resources.push_constant_buffers) {
+            const spirv_cross::SPIRType& type{ compiler.get_type(resource.base_type_id) };
+            u32 size{ static_cast<u32>(compiler.get_declared_struct_size(type)) };
+            u32 offset{ 0 };
+
+            if (!mPushConstants.empty()) {
+                offset = mPushConstants.back().Offset + mPushConstants.back().Size;
+            }
+
+            vk::PushConstantRange range{};
+            range.stageFlags = stage;
+            range.offset = offset;
+            range.size = size;
+
+            VkShaderPushConstant& pushConstant{ mPushConstants.emplace_back() };
+            pushConstant.Offset = offset;
+            pushConstant.Size = size;
+            pushConstant.Name = resource.name;
+            pushConstant.Range = range;
+        }
+
         for (const auto& resource : resources.uniform_buffers) {
             bindingLocation binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             setLocation set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-            u32 size = static_cast<u32>(compiler.get_declared_struct_size(type));
+            u32 size{ static_cast<u32>(compiler.get_declared_struct_size(type)) };
 
             vk::DescriptorSetLayoutBinding description{};
             description.binding = binding;

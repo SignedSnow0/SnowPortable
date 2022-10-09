@@ -20,7 +20,6 @@ namespace Snow {
     }
 
     void VkDescriptorSet::SetUniform(const std::string& name, const void* data) {
-        auto& resource = mResources[name];
         if (mResources.find(name) != mResources.end() && mResources.at(name).Type == ShaderResourceType::Uniform) {
             mResources.at(name).Uniform->SetData(data, VkSurface::BoundSurface()->CurrentFrame());
         }

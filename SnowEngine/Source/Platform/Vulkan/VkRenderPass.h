@@ -14,6 +14,7 @@ namespace Snow {
         virtual u32 Width() const override;
         virtual u32 Height() const override;
         virtual const std::vector<Image*>& Images() const override;
+        virtual b8 HasDepth() const override;
 
         virtual void Begin() override;
         virtual void End() override;
@@ -27,6 +28,7 @@ namespace Snow {
         vk::RenderPass mRenderPass;
         std::vector<vk::Framebuffer> mFramebuffers;
         std::vector<Image*> mImages;
+        std::vector<Image*> mDepthImages;
         u32 mWidth;
         u32 mHeight;
         VkSurface* mSurface{ nullptr };

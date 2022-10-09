@@ -75,4 +75,77 @@ namespace ImGui {
 		PopClipRect();
 		return pressed;
 	}
+
+	b8 Vec3fSlider(const std::string& label, vec3f& value, const vec3f& defaultValue) {
+		b8 changed{ false };
+		f32 speed{ 0.1f };
+		/*if (IsKeyDown(GLFW_KEY_LEFT_SHIFT))
+			speed = 0.01f;
+		else if (IsKeyDown(GLFW_KEY_LEFT_CONTROL))
+			speed = 1.0f;*/
+		PushID(label.c_str());
+		Columns(2, nullptr, false);
+		
+		//Label
+		Text(label.c_str());
+		NextColumn();
+
+		//Values
+		PushMultiItemsWidths(3, CalcItemWidth());
+		PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+		f32 lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize{ lineHeight + 3.0f, lineHeight };
+
+		//X
+		PushStyleColor(ImGuiCol_Button, { 0.7f, 0.05f, 0.12f, 1.0f });
+		PushStyleColor(ImGuiCol_ButtonHovered, { 0.8f, 0.15f, 0.22f, 1.0f });
+		PushStyleColor(ImGuiCol_ButtonActive, { 0.7f, 0.05f, 0.12f, 1.0f });
+		if (Button("X", buttonSize) && value.x != defaultValue.x) {
+			value.x = defaultValue.x;
+			changed = true;
+		}
+		PopStyleColor(3);
+		SameLine();
+
+		changed |= DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.3f");
+		PopItemWidth();
+		SameLine();
+
+		//Y
+		PushStyleColor(ImGuiCol_Button, { 0.26f, 0.63f, 0.26f, 1.0f });
+		PushStyleColor(ImGuiCol_ButtonHovered, { 0.36f, 0.73f, 0.36f, 1.0f });
+		PushStyleColor(ImGuiCol_ButtonActive, { 0.26f, 0.63f, 0.26f, 1.0f });
+		if (Button("Y", buttonSize) && value.y != defaultValue.y) {
+			value.y = defaultValue.y;
+			changed = true;
+		}
+		PopStyleColor(3);
+		SameLine();
+		
+		changed |= DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.3f");
+		PopItemWidth();
+		SameLine();
+
+		//Z
+		PushStyleColor(ImGuiCol_Button, { 0.0f, 0.27f, 0.5f, 1.0f });
+		PushStyleColor(ImGuiCol_ButtonHovered, { 0.1f, 0.37f, 0.6f, 1.0f });
+		PushStyleColor(ImGuiCol_ButtonActive, { 0.0f, 0.27f, 0.5f, 1.0f });
+		if (Button("Z", buttonSize) && value.z != defaultValue.z) {
+			value.z = defaultValue.z;
+			changed = true;
+		}
+		PopStyleColor(3);
+		SameLine();
+		
+		changed |= DragFloat("##Z", &value.z, 0.1f, 0.0f, 0.0f, "%.3f");
+		PopItemWidth();
+
+		PopStyleVar();
+		Columns(1);
+		
+		PopID();
+
+		return true;
+	}
 }

@@ -27,14 +27,27 @@ namespace Snow {
         return new VkDescriptorSet(mShader->Layout(setIndex), 2, mPipelineLayout); //TODO: get frame count from somewhere
     }
 
+    void VkPipeline::PushConstant(const std::string& name, const void* data, u32 size) {
+        for (auto& pushConstant : mShader->PushConstants()) {
+            if (pushConstant.Name == name) {
+                VkSurface::BoundSurface()->CommandBuffer().pushConstants(mPipelineLayout, pushConstant.Range.stageFlags, pushConstant.Offset, pushConstant.Size, data);
+                return;
+            }
+        }
+    }
+
     void VkPipeline::CreatePipelineLayout(const PipelineCreateInfo& info) {
         auto layouts = mShader->DescriptorLayouts();
-        
+        std::vector<vk::PushConstantRange> pushConstants{};
+        for (const auto& pushConstant : mShader->PushConstants()) {
+            pushConstants.push_back(pushConstant.Range);
+        }
+
         vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.setLayoutCount = static_cast<u32>(layouts.size());
         pipelineLayoutInfo.pSetLayouts = layouts.data();
-        pipelineLayoutInfo.pushConstantRangeCount = 0;
-        pipelineLayoutInfo.pPushConstantRanges = nullptr;
+        pipelineLayoutInfo.pushConstantRangeCount = static_cast<u32>(pushConstants.size());
+        pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
 
         mPipelineLayout = VkCore::Instance()->Device().createPipelineLayout(pipelineLayoutInfo);
     }
@@ -120,6 +133,22 @@ namespace Snow {
         colorBlendingInfo.blendConstants[2] = 0.0f;
         colorBlendingInfo.blendConstants[3] = 0.0f;
 
+        vk::PipelineDepthStencilStateCreateInfo depthStencilInfo{};
+        depthStencilInfo.depthTestEnable = VK_FALSE;
+        depthStencilInfo.depthWriteEnable = VK_FALSE;
+        depthStencilInfo.depthCompareOp = vk::CompareOp::eLess;
+        depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
+        depthStencilInfo.minDepthBounds = 0.0f;
+        depthStencilInfo.maxDepthBounds = 1.0f;
+        depthStencilInfo.stencilTestEnable = VK_FALSE;
+        depthStencilInfo.front = vk::StencilOpState{};
+        depthStencilInfo.back = vk::StencilOpState{};
+        
+        if (info.TargetPass->HasDepth()) {
+            depthStencilInfo.depthTestEnable = VK_TRUE;
+            depthStencilInfo.depthWriteEnable = VK_TRUE;
+        }
+        
         auto shaders = reinterpret_cast<VkShader*>(info.ShaderProgram)->ShaderStages();
         
         vk::GraphicsPipelineCreateInfo createInfo{};
@@ -130,7 +159,7 @@ namespace Snow {
         createInfo.pViewportState = &viewportInfo;
         createInfo.pRasterizationState = &rasterizerInfo;
         createInfo.pMultisampleState = &multisamplingInfo;
-        createInfo.pDepthStencilState = nullptr;
+        createInfo.pDepthStencilState = &depthStencilInfo;
         createInfo.pColorBlendState = &colorBlendingInfo;
         createInfo.pDynamicState = &dynamicStateInfo;
         createInfo.layout = mPipelineLayout;

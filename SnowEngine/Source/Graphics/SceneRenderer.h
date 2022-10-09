@@ -5,6 +5,7 @@
 #include "Rhi/Pipeline.h"
 #include "Rhi/DescriptorSet.h"
 #include "RenderTarget.h"
+#include "Rhi/Buffers.h"
 
 namespace Snow {
     class SceneRenderer {
@@ -23,5 +24,7 @@ namespace Snow {
         RenderPass* mRenderPass{ nullptr };
         Pipeline* mPipeline{ nullptr };
         DescriptorSet* mDescriptorSet{ nullptr };
+        VertexBuffer* mVertexBuffer{ nullptr };
+        IndexBuffer* mIndexBuffer{ nullptr };
     };
 }

@@ -3,7 +3,7 @@
 
 namespace Snow {
     struct Vertex {
-        vec2f Position;
+        vec3f Position;
         vec3f Color;
     };
     

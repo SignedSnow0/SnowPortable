@@ -16,7 +16,8 @@ namespace Snow {
 
         virtual void Bind() = 0;
         virtual DescriptorSet* CreateDescriptorSet(u32 setIndex) = 0;
-
+        virtual void PushConstant(const std::string& name, const void* data, u32 size) = 0;
+        
     protected:
         Pipeline() = default;
     };

@@ -8,7 +8,7 @@
 #include "VkSurface.h"
 
 namespace Snow {
-    static void ChangeLayout(::vk::Image image, u32 mipLevels, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, u32 layerCount) {
+    static void ChangeImageLayout(::vk::Image image, u32 mipLevels, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, u32 layerCount) {
         vk::ImageMemoryBarrier barrier{};
         barrier.oldLayout = oldLayout;
         barrier.newLayout = newLayout;
@@ -20,34 +20,37 @@ namespace Snow {
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = layerCount;
 
-        vk::PipelineStageFlags sourceStage;
-        vk::PipelineStageFlags destinationStage;
-        if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-            barrier.srcAccessMask = {};
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        vk::PipelineStageFlags sourceStage{};
+        vk::PipelineStageFlags destinationStage{};
 
-            sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
-        }
-        else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
+        //Source
+        if (oldLayout == vk::ImageLayout::eUndefined) {
             barrier.srcAccessMask = {};
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-
             sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-            destinationStage = vk::PipelineStageFlagBits::eTransfer;
         }
-        else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+        else if (oldLayout == vk::ImageLayout::eTransferDstOptimal) {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-
             sourceStage = vk::PipelineStageFlagBits::eTransfer;
-            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
         }
-        else {
-            LOG_ERROR("No image layout transition implemented for this layout combination!");
+
+        //Destination
+        if (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        }
+        else if (newLayout == vk::ImageLayout::eTransferDstOptimal) {
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            destinationStage = vk::PipelineStageFlagBits::eTransfer;
+
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        }
+        else if (newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+            barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            destinationStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
         }
 
         VkCore::Instance()->SubmitInstantCommand([&](vk::CommandBuffer cmd) {
@@ -86,6 +89,11 @@ namespace Snow {
 
     vk::Sampler VkImage::Sampler() const { return mSampler; }
 
+    void VkImage::ChangeLayout(vk::ImageLayout newLayout) {
+        ChangeImageLayout(mImage, 1, mFormat, mLayout, newLayout, 1);
+        mLayout = newLayout;
+    }
+
     void VkImage::CreateImage(const ImageCreateInfo& info) {
         i32 width = info.Width;
         i32 height = info.Height;
@@ -107,20 +115,33 @@ namespace Snow {
         createInfo.extent = extent;
         createInfo.mipLevels = 1;
         createInfo.arrayLayers = 1;
-        createInfo.format = vk::Format::eR8G8B8A8Srgb;
         createInfo.tiling = vk::ImageTiling::eOptimal;
         createInfo.initialLayout = vk::ImageLayout::eUndefined;
-        createInfo.usage = vk::ImageUsageFlagBits::eSampled | (isFromFile ? vk::ImageUsageFlagBits::eTransferDst : vk::ImageUsageFlagBits::eColorAttachment);
         createInfo.sharingMode = vk::SharingMode::eExclusive;
         createInfo.samples = vk::SampleCountFlagBits::e1;
+
+        if (info.Usage == ImageUsage::Image) {
+            createInfo.format = vk::Format::eR8G8B8A8Srgb;
+            createInfo.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
+        }
+        else if (info.Usage == ImageUsage::ColorAttachment) {
+            createInfo.format = vk::Format::eR8G8B8A8Srgb;
+            createInfo.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment;
+        }
+          else if (info.Usage == ImageUsage::DepthAttachment) {
+            createInfo.format = vk::Format::eD32Sfloat;
+            createInfo.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eDepthStencilAttachment;
+        }
+
+        mFormat = createInfo.format;
 
         VmaAllocationCreateInfo allocInfo{};
         allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
         vmaCreateImage(VkCore::Instance()->Allocator(), reinterpret_cast<VkImageCreateInfo*>(&createInfo), &allocInfo, reinterpret_cast<::VkImage*>(&mImage), &mAllocation, nullptr);
 
-        if (isFromFile) {
-            ChangeLayout(mImage, 1, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1);
+        if (info.Usage == ImageUsage::Image) {
+            ChangeImageLayout(mImage, 1, createInfo.format, createInfo.initialLayout, vk::ImageLayout::eTransferDstOptimal, 1);
             
             VkBuffer stagingBuffer{ width * height * (u32)4, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_ONLY };
             stagingBuffer.InsertData(pixels);
@@ -140,13 +161,20 @@ namespace Snow {
                 cmd.copyBufferToImage(stagingBuffer.Buffer(), mImage, vk::ImageLayout::eTransferDstOptimal, 1, &region);
             });
               
-            ChangeLayout(mImage, 1, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
+            ChangeImageLayout(mImage, 1, createInfo.format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
             stbi_image_free(pixels);
+            mLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
             return;
         }
-
-        ChangeLayout(mImage, 1, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
+        else if (info.Usage == ImageUsage::ColorAttachment) {
+            ChangeImageLayout(mImage, 1, createInfo.format, createInfo.initialLayout, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
+            mLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        }
+        else if (info.Usage == ImageUsage::DepthAttachment) {
+            ChangeImageLayout(mImage, 1, createInfo.format, createInfo.initialLayout, vk::ImageLayout::eDepthStencilAttachmentOptimal, 1);
+            mLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        }
     }
 
     void VkImage::CreateViewAndSampler(const ImageCreateInfo& info) {
@@ -154,13 +182,23 @@ namespace Snow {
             vk::ImageViewCreateInfo createInfo{};
             createInfo.image = mImage;
             createInfo.viewType = vk::ImageViewType::e2D;
-         
             createInfo.subresourceRange.baseMipLevel = 0;
             createInfo.subresourceRange.levelCount = 1;
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount = 1;
-            createInfo.format = vk::Format::eR8G8B8A8Srgb;
-            createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+
+            if (info.Usage == ImageUsage::Image) {
+                createInfo.format = vk::Format::eR8G8B8A8Srgb;
+                createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+            }
+            else if (info.Usage == ImageUsage::ColorAttachment) {
+                createInfo.format = vk::Format::eR8G8B8A8Srgb;
+                createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+            }
+            else if (info.Usage == ImageUsage::DepthAttachment) {
+                createInfo.format = vk::Format::eD32Sfloat;
+                createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+            }
 
             mView = VkCore::Instance()->Device().createImageView(createInfo);
         }

@@ -9,6 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(${PROJECT_NAME} SnowEditor/Source/AssetsView.cpp
                                SnowEditor/Source/Controls.cpp
                                SnowEditor/Source/EditorApp.cpp
+                               SnowEditor/Source/EntityView.cpp
+                               SnowEditor/Source/SceneView.cpp
                                SnowEditor/Source/Utils.cpp)
 
 add_subdirectory(SnowEngine/)

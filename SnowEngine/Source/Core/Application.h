@@ -4,6 +4,7 @@
 #include "Graphics/Rhi/GuiLayer.h"
 #include "Scene.h"
 #include "Graphics/SceneRenderer.h"
+#include "Project/Project.h"
 
 namespace Snow {
     struct AppInfo {
@@ -32,5 +33,6 @@ namespace Snow {
         GuiLayer* mGuiLayer;
         Scene* mScene;
         SceneRenderer* mSceneRenderer;
+        Project* mProject;
     };
 }

@@ -161,9 +161,9 @@ namespace Snow {
         }
 
         for (const auto& resource : resources.uniform_buffers) {
-            bindingLocation binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            setLocation set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+            bindingLocation binding{ compiler.get_decoration(resource.id, spv::DecorationBinding) };
+            setLocation set{ compiler.get_decoration(resource.id, spv::DecorationDescriptorSet) };
+            const spirv_cross::SPIRType& type{ compiler.get_type(resource.base_type_id) };
             u32 size{ static_cast<u32>(compiler.get_declared_struct_size(type)) };
 
             vk::DescriptorSetLayoutBinding description{};
@@ -179,6 +179,35 @@ namespace Snow {
             shaderResource.Type = ShaderResourceType::Uniform;
             shaderResource.Name = resource.name;
 
+            if (reflection.find(set) == reflection.end()) {
+                reflection.insert({ set, {} });
+            }
+
+            if (reflection.at(set).find(binding) == reflection.at(set).end()) {
+                reflection.at(set).insert({ binding, shaderResource });
+                continue;
+            }
+
+            LOG_WARN("Duplicate resource at set: {}, binding: {} with names: {} and: {}", set, binding, reflection.at(set).at(binding).Name, shaderResource.Name);
+        }
+
+        for (const auto& resource : resources.sampled_images) {
+            bindingLocation binding{ compiler.get_decoration(resource.id, spv::DecorationBinding) };
+            setLocation set{ compiler.get_decoration(resource.id, spv::DecorationDescriptorSet) };
+
+            vk::DescriptorSetLayoutBinding description{};
+            description.binding = binding;
+            description.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+            description.descriptorCount = 1;
+            description.stageFlags = stage;
+            description.pImmutableSamplers = nullptr;
+
+            VkShaderResource shaderResource{};
+            shaderResource.Description = description;
+            shaderResource.Size = 0;
+            shaderResource.Type = ShaderResourceType::Image;
+            shaderResource.Name = resource.name;
+            
             if (reflection.find(set) == reflection.end()) {
                 reflection.insert({ set, {} });
             }

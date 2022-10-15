@@ -22,6 +22,3 @@
 [submodule "SnowEngine/External/tinygltf"]
 	path = SnowEngine/External/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
-[submodule "SnowEngine/External/cereal"]
-	path = SnowEngine/External/cereal
-	url = https://github.com/USCiLab/cereal.git

@@ -1,9 +1,10 @@
 #include "Application.h"
 #include "Logger.h"
 #include "Graphics/RenderTarget.h"
-#include "Entity.h"//TODO: Remove this
+#include "Project/ProjectSerializer.h"
 
 namespace Snow {
+    
     Application::Application(const AppInfo& info) {
         Logger::Initialize();
         Window::Initialize();
@@ -20,6 +21,9 @@ namespace Snow {
             mGuiLayer = GuiLayer::Create(*mRenderTarget, mSceneRenderer->OutputRenderPass());
             mGuiLayer->DarkTheme();
         }
+
+        mProject = new Project("TestProject", std::filesystem::current_path() / "TestProject");
+        ProjectSerializer::Serialize(*mProject);
     }
 
     Application::~Application() {
@@ -50,7 +54,7 @@ namespace Snow {
             mRenderTarget->Begin();
 
             mSceneRenderer->Render();
-            
+
             if (mGuiLayer) {
                 mGuiLayer->Begin();
 

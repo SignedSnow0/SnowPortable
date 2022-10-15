@@ -10,14 +10,14 @@ namespace Snow {
         if (createInfo.Usage == RenderPassUsage::Image) {
             mImages.resize(createInfo.ImageCount);
             for (u32 i{ 0 }; i < createInfo.ImageCount; i++) {
-                mImages[i] = new VkImage({ ImageUsage::ColorAttachment, "", mWidth, mHeight });
+                mImages[i] = new VkImage({ ImageUsage::ColorAttachment, "", nullptr, mWidth, mHeight });
             }
         }
 
         if (createInfo.DepthAttachment) {
             mDepthImages.resize(createInfo.ImageCount);
             for (u32 i{ 0 }; i < createInfo.ImageCount; i++) {
-                mDepthImages[i] = new VkImage({ ImageUsage::DepthAttachment, "", mWidth, mHeight });
+                mDepthImages[i] = new VkImage({ ImageUsage::DepthAttachment, "", nullptr, mWidth, mHeight });
             }
         }
         
@@ -57,6 +57,8 @@ namespace Snow {
         if (mSurface && (mSurface->Width() != mWidth || mSurface->Height() != mHeight)) {
             ResizeSurface();
         }
+
+        LOG_ASSERT(VkSurface::BoundSurface, "Trying to begin a render pass without a bound surface");
 
         std::vector<vk::ClearValue> clearValues{ vk::ClearColorValue(std::array<f32, 4>{ 0.0f, 0.0f, 0.0f, 1.0f }) };
         if (!mDepthImages.empty()) {
@@ -102,14 +104,13 @@ namespace Snow {
             VkCore::Instance()->Device().destroyFramebuffer(mFramebuffers[frameIndex]);
 
             delete mImages[frameIndex];
-            mImages[frameIndex] = new VkImage({ ImageUsage::ColorAttachment, "", mWidth, mHeight });
+            mImages[frameIndex] = new VkImage({ ImageUsage::ColorAttachment, "", nullptr, mWidth, mHeight });
             
             if (!mDepthImages.empty()) {
                 delete mDepthImages[frameIndex];
-                mDepthImages[frameIndex] = new VkImage({ ImageUsage::DepthAttachment, "", mWidth, mHeight });
+                mDepthImages[frameIndex] = new VkImage({ ImageUsage::DepthAttachment, "", nullptr, mWidth, mHeight });
             }
 
-            
             CreateFramebuffers(frameIndex);
         });
     }
@@ -223,7 +224,7 @@ namespace Snow {
 
             if (!mDepthImages.empty()) {
                 delete mDepthImages[i];
-                mDepthImages[i] = new VkImage({ ImageUsage::DepthAttachment, "", mWidth, mHeight });
+                mDepthImages[i] = new VkImage({ ImageUsage::DepthAttachment, "", nullptr, mWidth, mHeight });
             }
 
             CreateFramebuffers(i);

@@ -5,6 +5,7 @@
 #include "VkSurface.h"
 #include "VkBuffers.h"
 #include "VkDescriptorSet.h"
+#include "Core/Logger.h"
 
 namespace Snow {
     VkPipeline::VkPipeline(const PipelineCreateInfo& createInfo)
@@ -20,11 +21,12 @@ namespace Snow {
     }
 
     void VkPipeline::Bind() {
+        LOG_ASSERT(VkSurface::BoundSurface(), "Trying to bind pipeline without a bound surface");
         VkSurface::BoundSurface()->CommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
     }
 
     DescriptorSet* VkPipeline::CreateDescriptorSet(u32 setIndex) {
-        return new VkDescriptorSet(mShader->Layout(setIndex), 2, mPipelineLayout); //TODO: get frame count from somewhere
+        return new VkDescriptorSet(mShader->Layout(setIndex), 2, mPipelineLayout, setIndex); //TODO: get frame count from somewhere
     }
 
     void VkPipeline::PushConstant(const std::string& name, const void* data, u32 size) {
@@ -34,6 +36,8 @@ namespace Snow {
                 return;
             }
         }
+
+        LOG_WARN("Trying to push constant \"{}\" that does not exist", name);
     }
 
     void VkPipeline::CreatePipelineLayout(const PipelineCreateInfo& info) {

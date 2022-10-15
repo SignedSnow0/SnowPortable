@@ -23,6 +23,5 @@ namespace Snow {
         VkRenderPass* mRenderPass;
         VkRenderPass* mSceneRenderPass;
         std::vector<ImTextureID> mTextures;
-        vk::Sampler mSampler;
     };
 }

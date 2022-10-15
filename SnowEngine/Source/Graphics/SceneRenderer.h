@@ -7,6 +7,7 @@
 #include "RenderTarget.h"
 #include "Rhi/Buffers.h"
 #include "Camera.h"
+#include "Mesh.h"
 
 namespace Snow {
     class SceneRenderer {
@@ -19,16 +20,19 @@ namespace Snow {
         void Update();
         void Render();
 
+        static Pipeline* DefaultPipeline();
+
     private:
         Scene* mScene{ nullptr };
 
         Shader* mShader{ nullptr };
         RenderPass* mRenderPass{ nullptr };
         Pipeline* mPipeline{ nullptr };
-        DescriptorSet* mDescriptorSet{ nullptr };
-        VertexBuffer* mVertexBuffer{ nullptr };
-        IndexBuffer* mIndexBuffer{ nullptr };
-
+        ResourcePtr<DescriptorSet> mDescriptorSet{ nullptr };
+        ResourcePtr<Mesh> mMesh{ nullptr };
+		
         Camera mCamera;
+
+        static SceneRenderer* sInstance;
     };
 }

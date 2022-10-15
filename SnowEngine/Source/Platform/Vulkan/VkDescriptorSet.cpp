@@ -1,10 +1,11 @@
 #include "VkDescriptorSet.h"
 #include "VkCore.h"
 #include "VkSurface.h"
+#include "Core/Logger.h"
 
 namespace Snow {
-    VkDescriptorSet::VkDescriptorSet(const VkShaderLayout* layout, u32 frameCount, vk::PipelineLayout pLayout)
-        : mLayout{ pLayout } {
+    VkDescriptorSet::VkDescriptorSet(const VkShaderLayout* layout, u32 frameCount, vk::PipelineLayout pLayout, u32 setLocation)
+        : mLayout{ pLayout }, mSetLocation{ setLocation } {
         CreateDescriptorPool(layout, frameCount);
         CreateUniformBuffers(layout, frameCount);
     }
@@ -20,13 +21,47 @@ namespace Snow {
     }
 
     void VkDescriptorSet::SetUniform(const std::string& name, const void* data) {
-        if (mResources.find(name) != mResources.end() && mResources.at(name).Type == ShaderResourceType::Uniform) {
-            mResources.at(name).Uniform->SetData(data, VkSurface::BoundSurface()->CurrentFrame());
+        auto& resource{ mResources.find(name) };
+        if (resource != mResources.end() && resource->second.Type == ShaderResourceType::Uniform) {
+            resource->second.Uniform->SetData(data, VkSurface::BoundSurface()->CurrentFrame());
+            return;
         }
+
+        LOG_WARN("Trying to set uniform \"{}\" that does not exist", name);
     }
 
-    void VkDescriptorSet::Bind() {
-        VkSurface::BoundSurface()->CommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mLayout, 0, 1, &mDescriptorSets[VkSurface::BoundSurface()->CurrentFrame()], 0, nullptr);
+    void VkDescriptorSet::SetImage(const std::string& name, Image* image) {
+        VkImage* vkImage{ reinterpret_cast<VkImage*>(image) };
+        auto& resource{ mResources.find(name) };
+        if (resource != mResources.end() && resource->second.Type == ShaderResourceType::Image) {
+            resource->second.Image = vkImage;
+
+            vk::DescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = vkImage->Layout();
+            imageInfo.imageView = vkImage->View();
+            imageInfo.sampler = vkImage->Sampler();
+
+            for (u32 i = 0; i < mDescriptorSets.size(); i++) {
+                vk::WriteDescriptorSet write{};
+                write.dstSet = mDescriptorSets[i];
+                write.dstBinding = resource->second.Binding;
+                write.dstArrayElement = 0;
+                write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+                write.descriptorCount = 1;
+                write.pImageInfo = &imageInfo;
+
+                VkCore::Instance()->Device().updateDescriptorSets(write, nullptr);
+            }
+
+            return;
+        }
+
+        LOG_WARN("Trying to set image \"{}\" that does not exist", name);
+    }
+
+    void VkDescriptorSet::Bind() const {
+        LOG_ASSERT(VkSurface::BoundSurface(), "Trying to bind descriptor set without a bound surface");
+        VkSurface::BoundSurface()->CommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mLayout, mSetLocation, 1, &mDescriptorSets[VkSurface::BoundSurface()->CurrentFrame()], 0, nullptr);
     }
 
     void VkDescriptorSet::CreateDescriptorPool(const VkShaderLayout* layout, u32 frameCount) {
@@ -35,17 +70,19 @@ namespace Snow {
         u32 uniformCount{ 0 };
         u32 imageCount{ 0 };
         for (const auto& [binding, resource] : layout->Resources()) {
-            if(resource.Type == ShaderResourceType::Uniform)
+            if (resource.Type == ShaderResourceType::Uniform)
                 uniformCount++;
-            else if(resource.Type == ShaderResourceType::Image)
+            else if (resource.Type == ShaderResourceType::Image)
                 imageCount++;
         }
+
+        LOG_ASSERT(uniformCount || imageCount, "Trying to create descriptor set with no resources");
 
         if (uniformCount > 0)
             mSizes.push_back(vk::DescriptorPoolSize{ vk::DescriptorType::eUniformBuffer, uniformCount });
         if (imageCount > 0)
             mSizes.push_back(vk::DescriptorPoolSize{ vk::DescriptorType::eCombinedImageSampler, imageCount });
-
+        
         vk::DescriptorPoolCreateInfo createInfo{};
         createInfo.poolSizeCount = static_cast<u32>(mSizes.size());
         createInfo.pPoolSizes = mSizes.data();
@@ -66,6 +103,9 @@ namespace Snow {
         for (const auto& [binding, description] : layout->Resources()) {
             if (description.Type == ShaderResourceType::Uniform) {
                 mResources.insert({ description.Name, { description.Type, binding, new VkUniformBuffer(description.Size, frameCount) } });
+            }
+            else if (description.Type == ShaderResourceType::Image) {
+                mResources.insert({ description.Name, { description.Type, binding, nullptr } });
             }
         }
 

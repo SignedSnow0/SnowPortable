@@ -1,7 +1,7 @@
 #include "VkBuffers.h"
 #include "VkCore.h"
 #include "VkSurface.h"
-
+#include "Core/Logger.h"
 namespace Snow {
     static void CopyBuffer(const vk::Buffer src, const vk::Buffer dst, const vk::DeviceSize size) {
         VkCore::Instance()->SubmitInstantCommand([&](vk::CommandBuffer cmd) {
@@ -16,6 +16,8 @@ namespace Snow {
     
     VkBuffer::VkBuffer(u64 size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage)
         : mSize(size) {
+        LOG_ASSERT(size, "Buffer size cannot be 0 bytes");
+        
         vk::BufferCreateInfo createInfo{};
         createInfo.size = size;
         createInfo.usage = usage;
@@ -49,10 +51,12 @@ namespace Snow {
     }
 
     void VkVertexBuffer::Bind() const {
+        LOG_ASSERT(VkSurface::BoundSurface(), "Trying to bind vertex buffer without a bound surface");
         VkSurface::BoundSurface()->CommandBuffer().bindVertexBuffers(0, mBuffer, { 0 });
     }
 
     void VkVertexBuffer::Draw() const {
+        LOG_ASSERT(VkSurface::BoundSurface(), "Trying to draw vertex buffer without a bound surface");
         VkSurface::BoundSurface()->CommandBuffer().draw(mCount, 1, 0, 0);
     }
     
@@ -67,7 +71,7 @@ namespace Snow {
 
     std::vector<vk::VertexInputAttributeDescription> VkVertexBuffer::AttributeDescriptions() {
         std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
-        attributeDescriptions.resize(2);
+        attributeDescriptions.resize(4);
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
@@ -78,6 +82,16 @@ namespace Snow {
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format = vk::Format::eR32G32B32Sfloat;
         attributeDescriptions[1].offset = offsetof(Vertex, Color);
+
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = vk::Format::eR32G32Sfloat;
+        attributeDescriptions[2].offset = offsetof(Vertex, UV);
+
+        attributeDescriptions[3].binding = 0;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = vk::Format::eR32G32B32Sfloat;
+        attributeDescriptions[3].offset = offsetof(Vertex, Normal);
 
         return attributeDescriptions;
     }
@@ -91,21 +105,24 @@ namespace Snow {
     }
 
     void VkIndexBuffer::Bind() const {
+        LOG_ASSERT(VkSurface::BoundSurface(), "Trying to bind index buffer without a bound surface");
         VkSurface::BoundSurface()->CommandBuffer().bindIndexBuffer(mBuffer, 0, vk::IndexType::eUint32);
     }
 
     void VkIndexBuffer::Draw() const {
+        LOG_ASSERT(VkSurface::BoundSurface(), "Trying to draw index buffer without a bound surface");
         VkSurface::BoundSurface()->CommandBuffer().drawIndexed(mCount, 1, 0, 0, 0);
     }
 
     VkUniformBuffer::VkUniformBuffer(u64 size, u32 frameCount) {
+        mBuffers.resize(frameCount);
         for (u32 i{ 0 }; i < frameCount; i++) {
-            mBuffers.push_back(new VkBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            mBuffers[i] = new VkBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU);
         }
     }
 
     VkUniformBuffer::~VkUniformBuffer() {
-        for (auto buffer : mBuffers) {
+        for (auto* buffer : mBuffers) {
             delete buffer;
         }
     }

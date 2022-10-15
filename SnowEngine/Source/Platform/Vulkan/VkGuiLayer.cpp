@@ -23,7 +23,6 @@ namespace Snow {
 
         device.waitIdle();
         device.destroyDescriptorPool(mDescriptorPool);
-        device.destroySampler(mSampler);
 
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -102,26 +101,7 @@ namespace Snow {
 
         mDescriptorPool = VkCore::Instance()->Device().createDescriptorPool(createInfo);
 
-        vk::SamplerCreateInfo samplerInfo{};
-        samplerInfo.magFilter = vk::Filter::eLinear;
-        samplerInfo.minFilter = vk::Filter::eLinear;
-        samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-        samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
-        samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
-        samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.anisotropyEnable = VK_FALSE;
-        samplerInfo.maxAnisotropy = 1.0f;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = vk::CompareOp::eAlways;
-        samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = 1.0f;
-        samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-
-        mSampler = VkCore::Instance()->Device().createSampler(samplerInfo);
-
-        mRenderPass = new VkRenderPass({ RenderPassUsage::Presentation, surface->Width(), surface->Height(), 2, surface, false });
+        mRenderPass = new VkRenderPass({ RenderPassUsage::Presentation, surface->Width(), surface->Height(), surface->ImageCount(), surface, false });
     }
 
     void VkGuiLayer::InitImGui(const RenderTarget& rt) {
@@ -145,7 +125,7 @@ namespace Snow {
 
         ImGui_ImplGlfw_InitForVulkan(reinterpret_cast<GLFWwindow*>(rt.GetWindow()->Native()), true);
 
-        u32 imageCount = reinterpret_cast<VkSurface*>(rt.GetSurface())->ImageCount();
+        u32 imageCount{ rt.GetSurface()->ImageCount() };
         
         ImGui_ImplVulkan_InitInfo initInfo{};
         initInfo.Instance = VkCore::Instance()->VkInstance();

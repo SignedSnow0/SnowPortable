@@ -94,6 +94,10 @@
         "xutility": "cpp",
         "shared_mutex": "cpp",
         "stack": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "complex": "cpp",
+        "csignal": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp"
     }
 }

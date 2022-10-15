@@ -42,9 +42,8 @@ namespace Snow {
         Window window{ "Test", 800, 600, false };
         VkSurfaceKHR surface;
         if (glfwCreateWindowSurface(instance, reinterpret_cast<GLFWwindow*>(window.Native()), nullptr, &surface) != VK_SUCCESS) {
-            assert(false && "Failed to create window surface");
+            LOG_ASSERT(false, "Failed to create window surface for queue family detection");
         }
-
         
         u32 i{ 0 };
         for (auto& family : families) {
@@ -261,6 +260,8 @@ namespace Snow {
                 return;
             }
         }
+
+        LOG_ASSERT(false, "No suitable physical device found");
     }
 
     void VkCore::CreateDevice() {

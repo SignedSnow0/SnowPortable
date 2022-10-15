@@ -6,6 +6,8 @@ namespace Snow {
     Entity Scene::CreateEntity() {
         Entity e{ mRegistry.create(), this };
         e.AddComponent<TransformComponent>();
+
+        mEntities.emplace_back(e.Id());
         return e;
     }
 
@@ -35,4 +37,8 @@ namespace Snow {
             func({ id, this });
         });
     }
+
+    const std::vector<u32>& Scene::Entities() const { return mEntities; }
+
+    const std::string& Scene::Name() const { return mName; }
 }

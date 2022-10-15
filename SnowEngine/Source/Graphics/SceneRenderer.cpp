@@ -3,8 +3,11 @@
 #include "Core/Entity.h"
 #include "Core/Components.h"
 #include "Core/Input.h"
+#include "Importers.h"
 
 namespace Snow {
+    SceneRenderer* SceneRenderer::sInstance{ nullptr };
+
     SceneRenderer::SceneRenderer(Scene* scene, RenderTarget& target)
         : mScene{ scene }, mCamera{ } {
         mShader = Shader::Create({
@@ -18,32 +21,15 @@ namespace Snow {
 
         mDescriptorSet = mPipeline->CreateDescriptorSet(0);
 
-        std::vector<Vertex> vertices = {
-            { { -0.5f, -0.5f,  0.0f }, { 1.0f, 0.0f, 0.0f } },
-            { {  0.5f, -0.5f,  0.0f }, { 0.0f, 1.0f, 0.0f } },
-            { {  0.5f,  0.5f,  0.0f }, { 0.0f, 0.0f, 1.0f } },
-            { { -0.5f,  0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f } },
+        sInstance = this;
 
-            { { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-            { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
-            { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } },
-            { { -0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f } }
-        };
-
-            std::vector<u32> indices = {
-            0, 1, 2, 2, 3, 0,
-            4, 5, 6, 6, 7, 4
-        };
-        
-        mVertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size());
-        mIndexBuffer = IndexBuffer::Create(indices.data(), indices.size());
+        GltfImporter importer;
+        mMesh = importer.ImportModel(Utils::GetAssetsPath() / "Models" / "gLTF\\DamagedHelmet.gltf");
     }
 
     SceneRenderer::~SceneRenderer() {
-        delete mVertexBuffer;
-        delete mIndexBuffer;
-        
-        delete mDescriptorSet;
+        sInstance = nullptr;
+
         delete mPipeline;
         delete mRenderPass;
         delete mShader;
@@ -96,11 +82,11 @@ namespace Snow {
 
             mPipeline->PushConstant("model", &model, sizeof model);
 
-            mVertexBuffer->Bind();
-            mIndexBuffer->Bind();
-            mIndexBuffer->Draw();
+            mMesh->Draw();
         });
 
         mRenderPass->End();
     }
+
+    Pipeline* SceneRenderer::DefaultPipeline() { return sInstance->mPipeline; }
 }

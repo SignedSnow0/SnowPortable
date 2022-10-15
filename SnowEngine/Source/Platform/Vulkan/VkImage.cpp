@@ -89,6 +89,8 @@ namespace Snow {
 
     vk::Sampler VkImage::Sampler() const { return mSampler; }
 
+    vk::ImageLayout VkImage::Layout() const { return mLayout; }
+    
     void VkImage::ChangeLayout(vk::ImageLayout newLayout) {
         ChangeImageLayout(mImage, 1, mFormat, mLayout, newLayout, 1);
         mLayout = newLayout;
@@ -98,8 +100,8 @@ namespace Snow {
         i32 width = info.Width;
         i32 height = info.Height;
 
-        stbi_uc* pixels{ nullptr };
-        b8 isFromFile{ mUsage == ImageUsage::Image && std::filesystem::exists(info.File) };
+        void* pixels{ info.Data ? info.Data : nullptr };
+        b8 isFromFile{ !pixels && mUsage == ImageUsage::Image && std::filesystem::exists(info.File) };
         if (isFromFile) {
             i32 channels{ 0 };
             pixels = stbi_load(info.File.string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -162,7 +164,10 @@ namespace Snow {
             });
               
             ChangeImageLayout(mImage, 1, createInfo.format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1);
-            stbi_image_free(pixels);
+            if (isFromFile) {
+                stbi_image_free(pixels);
+            }
+
             mLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
             return;

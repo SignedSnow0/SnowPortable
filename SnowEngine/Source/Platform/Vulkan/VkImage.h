@@ -14,6 +14,7 @@ namespace Snow {
         vk::Image Image() const;
         vk::ImageView View() const;
         vk::Sampler Sampler() const;
+        vk::ImageLayout Layout() const;
 
         void ChangeLayout(vk::ImageLayout newLayout);
         

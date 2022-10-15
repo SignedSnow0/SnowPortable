@@ -5,6 +5,8 @@ namespace Snow {
     struct Vertex {
         vec3f Position;
         vec3f Color;
+        vec2f UV;
+        vec3f Normal;
     };
     
     class VertexBuffer {

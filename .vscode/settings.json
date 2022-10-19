@@ -98,6 +98,8 @@
         "complex": "cpp",
         "csignal": "cpp",
         "typeindex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "any": "cpp",
+        "ranges": "cpp"
     }
 }

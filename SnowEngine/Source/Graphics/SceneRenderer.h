@@ -12,11 +12,12 @@
 namespace Snow {
     class SceneRenderer {
     public:
-        SceneRenderer(Scene* scene, RenderTarget& target);
+        SceneRenderer(RenderTarget& target);
         ~SceneRenderer();
 
         RenderPass* OutputRenderPass();
-
+        void SetScene(Scene* scene);
+        
         void Update();
         void Render();
 

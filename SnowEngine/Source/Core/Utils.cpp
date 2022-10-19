@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include <fstream>
 #include "Core/Logger.h"
+#include <nfd.hpp>
 
 namespace Snow {
     namespace Utils{
@@ -20,6 +21,34 @@ namespace Snow {
 
 			stream.close();
 			return buffer;
+		}
+
+		b8 FileDialog(std::filesystem::path& path, const std::filesystem::path& initialPath, const std::vector<std::pair<std::string, std::string>>& filters) {
+			char* outPath;
+			std::vector<nfdfilteritem_t> filterItems{ filters.size() };
+			for (u32 i = 0; i < filters.size(); i++) {
+				filterItems[i].name = filters[i].first.c_str();
+				filterItems[i].spec = filters[i].second.c_str();
+			}
+
+			if (NFD_OpenDialog(&outPath, filterItems.data(), filterItems.size(), initialPath.string().c_str()) == NFD_OKAY) {
+				path = outPath;
+				NFD_FreePath(outPath);
+				return true;
+			}
+			
+			return false;
+		}
+
+		b8 FolderDialog(std::filesystem::path& path, const std::filesystem::path& initialPath) {
+			char* outPath;
+			if (NFD_PickFolder(&outPath, initialPath.string().c_str()) == NFD_OKAY) {
+				path = outPath;
+				NFD_FreePath(outPath);
+				return true;
+			}
+
+			return false;
 		}
 
 		std::filesystem::path GetCurrentPath() { return std::filesystem::current_path() / "SnowEngine"; }

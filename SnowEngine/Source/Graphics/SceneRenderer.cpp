@@ -8,8 +8,8 @@
 namespace Snow {
     SceneRenderer* SceneRenderer::sInstance{ nullptr };
 
-    SceneRenderer::SceneRenderer(Scene* scene, RenderTarget& target)
-        : mScene{ scene }, mCamera{ } {
+    SceneRenderer::SceneRenderer(RenderTarget& target)
+        : mCamera{ } {
         mShader = Shader::Create({
             { Utils::GetShadersPath() / "default.vert", ShaderStage::Vertex },
             { Utils::GetShadersPath() / "default.frag", ShaderStage::Fragment }
@@ -37,7 +37,13 @@ namespace Snow {
 
     RenderPass* SceneRenderer::OutputRenderPass() { return mRenderPass; }
 
+    void SceneRenderer::SetScene(Scene* scene) { mScene = scene; }
+
     void SceneRenderer::Update() {
+        if (!mScene) {
+            return;
+        }
+        
         vec3f position = mCamera.mPosition;
         
         if (Input::KeyPressed(Key::W)) {
@@ -55,11 +61,16 @@ namespace Snow {
         if (Input::KeyPressed(Key::D)) {
             position += glm::normalize(glm::cross(mCamera.mFront, vec3f(0.0f, 1.0f, 0.0f))) * 0.01f;
         }
-
+		
         mCamera.SetPosition(position);        
+        mCamera.SetAspectRatio(mRenderPass->Width() / mRenderPass->Height());
     }
     
     void SceneRenderer::Render() {
+        if (!mScene) {
+            return;
+        }
+        
         mRenderPass->Begin();
 
         mPipeline->Bind();

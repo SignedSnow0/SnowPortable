@@ -57,6 +57,7 @@ add_subdirectory(External/glfw)
 add_subdirectory(External/glm)
 add_subdirectory(External/vma)
 add_subdirectory(External/tinygltf)
+add_subdirectory(External/nfd)
 
 #add include folders
 target_include_directories(${PROJECT_NAME} PUBLIC "Source/"
@@ -68,10 +69,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC "Source/"
                                                   "External/stb/" 
                                                   "External/entt/single_include/" 
                                                   "External/tinygltf/"
-                                                  "External/cereal/include/"
+                                                  "External/json/single_include/"
+                                                  "External/nfd/src/include"
                                                   "$ENV{VULKAN_SDK}/include/")
 
 #link libraries
 target_link_directories(${PROJECT_NAME} PUBLIC "$ENV{VULKAN_SDK}/lib/")
 target_link_libraries(${PROJECT_NAME} "glfw" 
-                                      "vulkan-1.lib")
+                                      "vulkan-1.lib"
+                                      "nfd")

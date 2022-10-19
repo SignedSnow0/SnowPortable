@@ -25,8 +25,8 @@ namespace ImGui {
 
 		//get cursor pos and sizes
 		ImVec2 start{ window->DC.CursorPos };
-		ImRect imageBB{ start, {start.x + imgSize.x, start.y + imgSize.y} };
-		ImRect totalBB{ start, {start.x + totalSize.x, start.y + totalSize.y} };
+		ImRect imageBB{ start, { start.x + imgSize.x, start.y + imgSize.y } };
+		ImRect totalBB{ start, { start.x + totalSize.x, start.y + totalSize.y } };
 
 		//add bounding box
 		const ImGuiID id = window->GetID(text.c_str());

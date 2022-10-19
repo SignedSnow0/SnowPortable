@@ -9,7 +9,6 @@
                 "-S${workspaceFolder}/",
                 "-B${workspaceFolder}/bin/",
                 "-DCMAKE_BUILD_TYPE=Debug",
-                "-GVisual Studio 17 2022"
             ],
             "isBackground": true,
             "problemMatcher": []

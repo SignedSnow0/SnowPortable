@@ -53,7 +53,7 @@ namespace Snow {
             }
            
             if (!resized) {
-                    ImGui::Image(mTextures[VkSurface::BoundSurface()->CurrentFrame()], ImGui::GetWindowSize());
+                ImGui::Image(mTextures[VkSurface::BoundSurface()->CurrentFrame()], ImGui::GetWindowSize());
             }
             static ImVec2 textSize{ ImGui::CalcTextSize("0000 x 0000") };
             ImGui::SetCursorPos({ windowWidth - textSize.x - 3, 3 });

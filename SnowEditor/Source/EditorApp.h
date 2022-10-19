@@ -1,4 +1,4 @@
-#include <EntryPoint.h>
+#pragma once
 #include "AssetsView.h"
 #include "EntityView.h"
 #include "SceneView.h"
@@ -10,16 +10,12 @@ public:
 
     virtual void DrawGui() override;
 
+    static EditorApplication* GetInstance();
+
 private:
     AssetsView mAssetsView;
     EntityView mEntityView;
     SceneView mSceneView;
+
+    static EditorApplication* sInstance;
 };
-
-void CreateApplication(Snow::Application*& app) {
-    app = new EditorApplication();
-}
-
-void DestroyApplication(Snow::Application* app) {
-    delete app;
-}

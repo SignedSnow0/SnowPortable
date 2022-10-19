@@ -9,15 +9,18 @@ namespace Snow {
         Project(const std::string& name, const std::filesystem::path& root);
 
         const std::string& Name() const;
-        const std::filesystem::path& Root() const;
-        const std::vector<Scene>& Scenes() const;
-        const Scene* ActiveScene() const;
+        const std::filesystem::path& RootFolder() const;
+        std::vector<Scene*>& Scenes();
+        Scene* ActiveScene();
+        
+        void AddScene(Scene* scene);
+        void SetActiveScene(Scene* scene);
 
     private:
         std::string mName;
-        std::filesystem::path mRoot;
+        std::filesystem::path mRootFolder;
 
-        std::vector<Scene> mScenes;
-        Scene* mActiveScene;
+        std::vector<Scene*> mScenes;
+        Scene* mActiveScene{ nullptr };
     };
 }

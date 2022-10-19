@@ -11,6 +11,10 @@ namespace Snow {
         mat4f Transform() const;
     };
 
+    struct TagComponent {
+        std::string Tag;
+    };
+
     struct MeshComponent {
         Mesh* Mesh{ nullptr };
     };

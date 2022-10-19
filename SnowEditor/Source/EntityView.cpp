@@ -7,7 +7,11 @@ Snow::Entity EntityView::ActiveEntity() const { return mEntity; }
 
 void EntityView::Draw() {
     if (ImGui::Begin("View") && mEntity.Valid()) {
-        ImGui::Text("Entity %u", mEntity.Id());
+		auto& tag = mEntity.GetComponent<Snow::TagComponent>();
+        char buf[256]{ 0 };
+		strcpy_s(buf, tag.Tag.c_str());
+		ImGui::InputText("##EntityName", buf, 256);
+		tag.Tag = buf;
         ImGui::Separator();
 
         if (auto* comp = mEntity.TryGetComponent<Snow::TransformComponent>(); comp) {
@@ -18,6 +22,8 @@ void EntityView::Draw() {
                 ImGui::Vec3fSlider("Scale", comp->Scale, { 1.0f, 1.0f, 1.0f });
 
                 ImGui::TreePop();
+				
+                ImGui::Separator();
             }
         }
     }

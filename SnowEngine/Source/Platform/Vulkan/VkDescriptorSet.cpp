@@ -21,7 +21,7 @@ namespace Snow {
     }
 
     void VkDescriptorSet::SetUniform(const std::string& name, const void* data) {
-        auto& resource{ mResources.find(name) };
+        const auto& resource{ mResources.find(name) };
         if (resource != mResources.end() && resource->second.Type == ShaderResourceType::Uniform) {
             resource->second.Uniform->SetData(data, VkSurface::BoundSurface()->CurrentFrame());
             return;
@@ -32,7 +32,7 @@ namespace Snow {
 
     void VkDescriptorSet::SetImage(const std::string& name, Image* image) {
         VkImage* vkImage{ reinterpret_cast<VkImage*>(image) };
-        auto& resource{ mResources.find(name) };
+        const auto& resource{ mResources.find(name) };
         if (resource != mResources.end() && resource->second.Type == ShaderResourceType::Image) {
             resource->second.Image = vkImage;
 

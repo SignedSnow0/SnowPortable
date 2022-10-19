@@ -4,6 +4,7 @@
 #include "Project/ProjectSerializer.h"
 
 namespace Snow {
+    Application* Application::sInstance{ nullptr };
     
     Application::Application(const AppInfo& info) {
         Logger::Initialize();
@@ -13,22 +14,18 @@ namespace Snow {
         LOG_INFO("Application created");
 
         mRenderTarget = new RenderTarget(new Window(info.WindowTitle, info.WindowWidth, info.WindowHeight));
-
-        mScene = new Scene();
-        mSceneRenderer = new SceneRenderer(mScene, *mRenderTarget);
+        mSceneRenderer = new SceneRenderer(*mRenderTarget);
 
         if (info.InitGui) {
             mGuiLayer = GuiLayer::Create(*mRenderTarget, mSceneRenderer->OutputRenderPass());
             mGuiLayer->DarkTheme();
         }
 
-        mProject = new Project("TestProject", std::filesystem::current_path() / "TestProject");
-        ProjectSerializer::Serialize(*mProject);
+        sInstance = this;
     }
 
     Application::~Application() {
         delete mSceneRenderer;
-        delete mScene;
 
         if (mGuiLayer)
             delete mGuiLayer;
@@ -39,7 +36,14 @@ namespace Snow {
         Window::Shutdown();
         Logger::Shutdown();
     }
-    
+
+    Project* Application::CurrentProject() { return mProject; }
+
+    void Application::SetProject(Project* project) {
+        mProject = project;
+        mSceneRenderer->SetScene(project->ActiveScene());
+    }
+
     void Application::Run() {
         while (true) {
             Window::PollEvents();
@@ -67,5 +71,5 @@ namespace Snow {
         }
     }
 
-    Scene* Application::ActiveScene() { return mScene; }
+    Application* Application::GetInstance() { return sInstance; }
 }

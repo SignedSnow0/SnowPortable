@@ -1,0 +1,15 @@
+﻿{
+  "configurations": [
+    {
+      "name": "Windows-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "clang_cl_x64" ],
+      "buildRoot": "${projectDir}\\bin\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": ""
+    }
+  ]
+}

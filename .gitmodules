@@ -22,3 +22,9 @@
 [submodule "SnowEngine/External/tinygltf"]
 	path = SnowEngine/External/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+[submodule "SnowEngine/External/json"]
+	path = SnowEngine/External/json
+	url = https://github.com/nlohmann/json.git
+[submodule "SnowEngine/External/nfd"]
+	path = SnowEngine/External/nfd
+	url = https://github.com/btzy/nativefiledialog-extended.git

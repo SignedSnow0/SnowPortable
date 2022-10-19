@@ -7,11 +7,11 @@ public:
     SceneView(EntityView* entityView);
     ~SceneView() = default;
 
-    void SetScene(Snow::Scene* scene);
+    void SetProject(Snow::Project* project);
     
     void Draw();
 
 private:
-    Snow::Scene* mScene{ nullptr };
+    Snow::Project* mProject{ nullptr };
     EntityView* mEntityView{ nullptr };
 };

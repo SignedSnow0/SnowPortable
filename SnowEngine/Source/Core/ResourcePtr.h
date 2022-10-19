@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include "Core/Common.h"
 
 namespace Snow {
@@ -89,7 +90,7 @@ namespace Snow {
         bool operator==(const T* other) const { return std::addressof(mItem) == other; }
         
         bool operator!=(const ResourcePtr& other) const { return std::addressof(mItem) != std::addressof(other.mItem); }
-        bool operator!=(const T* other) const { return std::addressof(mItem) != others; }
+        bool operator!=(const T* other) const { return std::addressof(mItem) != other; }
 
     private:
         T* mItem{ nullptr };

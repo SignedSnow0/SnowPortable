@@ -12,7 +12,8 @@
                 "${workspaceFolder}/SnowEngine/External/stb/",
                 "${workspaceFolder}/SnowEngine/External/entt/single_include/",
                 "${workspaceFolder}/SnowEngine/External/tinygltf/",
-                "${workspaceFolder}/SnowEngine/External/cereal/include/",
+                "${workspaceFolder}/SnowEngine/External/json/single_include/",
+                "${workspaceFolder}/SnowEngine/External/nfd/src/include",
                 "${env:VULKAN_SDK}/include/"
             ],
             "defines": [

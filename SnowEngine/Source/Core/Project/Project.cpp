@@ -1,16 +1,24 @@
 #include "Project.h"
+#include "Core/Application.h"
 
 namespace Snow {
     Project::Project(const std::string& name, const std::filesystem::path& root)
-        : mName{ name }, mRoot{ root } {
+        : mName{ name }, mRootFolder{ root } {
 
     }
 
     const std::string& Project::Name() const { return mName; }
 
-    const std::filesystem::path& Project::Root() const { return mRoot; }
+    const std::filesystem::path& Project::RootFolder() const { return mRootFolder; }
 
-    const std::vector<Scene>& Project::Scenes() const { return mScenes; }
+    std::vector<Scene*>& Project::Scenes() { return mScenes; }
 
-    const Scene* Project::ActiveScene() const { return mActiveScene; }
+    Scene* Project::ActiveScene() { return mActiveScene; }
+
+    void Project::AddScene(Scene* scene) { mScenes.push_back(scene); }
+
+    void Project::SetActiveScene(Scene* scene) {
+        mActiveScene = scene;
+        Application::GetInstance()->mSceneRenderer->SetScene(scene);
+    }
 }

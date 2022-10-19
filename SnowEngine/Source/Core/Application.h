@@ -21,18 +21,24 @@ namespace Snow {
         Application(const AppInfo& info);
         virtual ~Application();
         
+        Project* CurrentProject();
+        void SetProject(Project* project);
+
         void Run();
 
+        static Application* GetInstance();
+
     protected:
-        Scene* ActiveScene();
-        
         virtual void DrawGui() { }
 
     private:
         RenderTarget* mRenderTarget;
         GuiLayer* mGuiLayer;
-        Scene* mScene;
         SceneRenderer* mSceneRenderer;
-        Project* mProject;
+        Project* mProject{ nullptr };
+
+        static Application* sInstance;
+        
+        friend class Project;
     };
 }

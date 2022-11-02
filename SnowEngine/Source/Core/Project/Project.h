@@ -7,6 +7,7 @@ namespace Snow {
     class Project {
     public:
         Project(const std::string& name, const std::filesystem::path& root);
+        ~Project();
 
         const std::string& Name() const;
         const std::filesystem::path& RootFolder() const;

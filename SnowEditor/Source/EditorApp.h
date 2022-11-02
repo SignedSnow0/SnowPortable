@@ -2,6 +2,7 @@
 #include "AssetsView.h"
 #include "EntityView.h"
 #include "SceneView.h"
+#include "ResourcesView.h"
 
 class EditorApplication : public Snow::Application {
 public:
@@ -16,6 +17,7 @@ private:
     AssetsView mAssetsView;
     EntityView mEntityView;
     SceneView mSceneView;
+    ResourcesView mResourcesView;
 
     static EditorApplication* sInstance;
 };

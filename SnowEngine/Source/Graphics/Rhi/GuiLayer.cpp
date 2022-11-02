@@ -1,8 +1,8 @@
 #include "GuiLayer.h"
+#include <imgui.h>
 #include "Core/Logger.h"
 #include "Graphics/GraphicsCore.h"
 #include "Platform/Vulkan/VkGuiLayer.h"
-#include <imgui.h>
 
 namespace Snow {
     static ImVec4 RGBAtoVec4(const vec4u& color) {

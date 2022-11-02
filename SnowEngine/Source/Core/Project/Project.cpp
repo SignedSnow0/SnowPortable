@@ -3,8 +3,12 @@
 
 namespace Snow {
     Project::Project(const std::string& name, const std::filesystem::path& root)
-        : mName{ name }, mRootFolder{ root } {
-
+        : mName{ name }, mRootFolder{ root } { }
+	
+    Project::~Project() {
+        for (auto* scene : mScenes) {
+            delete scene;
+        }
     }
 
     const std::string& Project::Name() const { return mName; }

@@ -10,6 +10,7 @@ namespace Snow {
         virtual ~VkImage() override;
 
         virtual ImTextureID GuiId() override;
+        virtual std::filesystem::path Path() const override;
         
         vk::Image Image() const;
         vk::ImageView View() const;
@@ -30,5 +31,6 @@ namespace Snow {
         VmaAllocation mAllocation;
         ImTextureID mGuiId{ nullptr };
         ImageUsage mUsage;
+        std::filesystem::path mPath{};
     };
 }

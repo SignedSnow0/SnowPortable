@@ -8,6 +8,8 @@ namespace Snow {
         }
     }
 
+    ResourcePtr<Material>& Mesh::GetMaterial() { return mMaterial; }
+    
     void Mesh::Draw() const {
         if (mVertexBuffer) {
             mMaterial->Bind();

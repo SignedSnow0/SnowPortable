@@ -2,8 +2,11 @@
 #include "Graphics/Rhi/Pipeline.h"
 #include "VkShader.h"
 #include <vulkan/vulkan.hpp>
+#include "Core/ResourcePtr.h"
 
 namespace Snow {
+    class VkDescriptorSet;
+    
     class VkPipeline : public Pipeline {
     public:
         VkPipeline(const PipelineCreateInfo& createInfo);
@@ -19,6 +22,9 @@ namespace Snow {
 
         vk::PipelineLayout mPipelineLayout;
         vk::Pipeline mPipeline;
-        VkShader* mShader;
+        ResourcePtr<Shader> mShader;
+        u64 mShaderId{ 0 };
+        PipelineCreateInfo mCreateInfo;
+        std::vector<VkDescriptorSet*> mCreatedDescriptorSets;
     };
 }

@@ -8,6 +8,8 @@ namespace Snow {
     public:
 		~Mesh();
 
+        ResourcePtr<Material>& GetMaterial();
+        
         void Draw() const;
         
     private:

@@ -10,10 +10,10 @@ namespace Snow {
 
     SceneRenderer::SceneRenderer(RenderTarget& target)
         : mCamera{ } {
-        mShader = Shader::Create({
+        mShader = Importer::ImportShader({
             { Utils::GetShadersPath() / "default.vert", ShaderStage::Vertex },
             { Utils::GetShadersPath() / "default.frag", ShaderStage::Fragment }
-        });
+        }, "Default");
 
         mRenderPass = RenderPass::Create({ RenderPassUsage::Image, target.GetSurface()->Width(), target.GetSurface()->Height(), target.GetSurface()->ImageCount(), nullptr, true });
         
@@ -22,9 +22,6 @@ namespace Snow {
         mDescriptorSet = mPipeline->CreateDescriptorSet(0);
 
         sInstance = this;
-
-        GltfImporter importer;
-        mMesh = importer.ImportModel(Utils::GetAssetsPath() / "Models" / "gLTF\\DamagedHelmet.gltf");
     }
 
     SceneRenderer::~SceneRenderer() {
@@ -32,7 +29,6 @@ namespace Snow {
 
         delete mPipeline;
         delete mRenderPass;
-        delete mShader;
     }
 
     RenderPass* SceneRenderer::OutputRenderPass() { return mRenderPass; }
@@ -90,10 +86,11 @@ namespace Snow {
         mScene->ExecuteForEachEntity([this](Entity e) {
             TransformComponent& comp = e.GetComponent<TransformComponent>();
             mat4f model = comp.Transform();
-
             mPipeline->PushConstant("model", &model, sizeof model);
 
-            mMesh->Draw();
+            if (auto* meshComp = e.TryGetComponent<MeshComponent>(); meshComp && meshComp->Mesh) {
+                meshComp->Mesh->Draw();
+            }
         });
 
         mRenderPass->End();

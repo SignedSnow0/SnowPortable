@@ -9,7 +9,7 @@
 
 namespace Snow {
     VkPipeline::VkPipeline(const PipelineCreateInfo& createInfo)
-        : mShader{ reinterpret_cast<VkShader*>(createInfo.ShaderProgram) } {
+        : mShader{ createInfo.ShaderProgram }, mShaderId{ reinterpret_cast<VkShader*>(&mShader)->SourceId() }, mCreateInfo{ createInfo } {
         CreatePipelineLayout(createInfo);
         CreatePipeline(createInfo);
     }
@@ -21,16 +21,32 @@ namespace Snow {
     }
 
     void VkPipeline::Bind() {
+        if (mShaderId != reinterpret_cast<VkShader*>(&mShader)->SourceId()) {
+            mShaderId = reinterpret_cast<VkShader*>(&mShader)->SourceId();
+
+            VkCore::Instance()->Device().destroyPipeline(mPipeline);
+            VkCore::Instance()->Device().destroyPipelineLayout(mPipelineLayout);
+
+            CreatePipelineLayout(mCreateInfo);
+            CreatePipeline(mCreateInfo);
+
+            for (auto* set : mCreatedDescriptorSets) {
+                set->mLayout = mPipelineLayout;
+            }
+        }
+        
         LOG_ASSERT(VkSurface::BoundSurface(), "Trying to bind pipeline without a bound surface");
         VkSurface::BoundSurface()->CommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
     }
 
     DescriptorSet* VkPipeline::CreateDescriptorSet(u32 setIndex) {
-        return new VkDescriptorSet(mShader->Layout(setIndex), 2, mPipelineLayout, setIndex); //TODO: get frame count from somewhere
+        VkShader* shader{ reinterpret_cast<VkShader*>(&mShader) };
+        mCreatedDescriptorSets.emplace_back(new VkDescriptorSet(reinterpret_cast<VkShaderLayout*>(shader->Layout(setIndex)), 2, mPipelineLayout, setIndex));//TODO: get frame count from somewhere
+        return mCreatedDescriptorSets.back(); 
     }
 
     void VkPipeline::PushConstant(const std::string& name, const void* data, u32 size) {
-        for (auto& pushConstant : mShader->PushConstants()) {
+        for (auto& pushConstant : reinterpret_cast<VkShader*>(&mShader)->PushConstants()) {
             if (pushConstant.Name == name) {
                 VkSurface::BoundSurface()->CommandBuffer().pushConstants(mPipelineLayout, pushConstant.Range.stageFlags, pushConstant.Offset, pushConstant.Size, data);
                 return;
@@ -41,9 +57,9 @@ namespace Snow {
     }
 
     void VkPipeline::CreatePipelineLayout(const PipelineCreateInfo& info) {
-        auto layouts = mShader->DescriptorLayouts();
+        auto layouts = reinterpret_cast<VkShader*>(&mShader)->DescriptorLayouts();
         std::vector<vk::PushConstantRange> pushConstants{};
-        for (const auto& pushConstant : mShader->PushConstants()) {
+        for (const auto& pushConstant : reinterpret_cast<VkShader*>(&mShader)->PushConstants()) {
             pushConstants.push_back(pushConstant.Range);
         }
 

@@ -6,3 +6,4 @@
 #include "Core/Project/Project.h"
 #include "Core/Project/ProjectSerializer.h"
 #include "Core/Logger.h"
+#include "Graphics/Importers.h"

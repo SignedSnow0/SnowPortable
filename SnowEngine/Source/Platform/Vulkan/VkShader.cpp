@@ -1,9 +1,11 @@
 #include "VkShader.h"
+#include <functional>
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 #include "Core/Utils.h"
 #include "Core/Logger.h"
 #include "VkCore.h"
+
 
 #ifdef SNOW_DEBUG
 #pragma comment(lib, "shaderc_combinedd.lib")
@@ -32,33 +34,76 @@ namespace Snow {
         }
     }
 
-    VkShaderLayout::VkShaderLayout(const std::map<bindingLocation, VkShaderResource>& resources)
+    VkShaderLayout::VkShaderLayout(const std::map<u32, ShaderResource*>& resources)
         : mResources{ resources } {
-        std::vector<vk::DescriptorSetLayoutBinding> bidings{ resources.size() };
+        std::vector<vk::DescriptorSetLayoutBinding> bindings{ resources.size() };
         u32 i{ 0 };
         for (const auto& [location, resource] : resources) {
-            bidings[i++] = resource.Description;
+            bindings[i++] = reinterpret_cast<VkShaderResource*>(resource)->Description;
         }
 
         vk::DescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.bindingCount = static_cast<u32>(bidings.size());
-        layoutInfo.pBindings = bidings.data();
+        layoutInfo.bindingCount = static_cast<u32>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
 
         mLayout = VkCore::Instance()->Device().createDescriptorSetLayout(layoutInfo);
     }
 
     VkShaderLayout::~VkShaderLayout() {
         VkCore::Instance()->Device().destroyDescriptorSetLayout(mLayout);
+
+        for (auto& [binding, resource] : mResources) {
+            delete resource;
+        }
     }
 
+    const std::map<u32, ShaderResource*>& VkShaderLayout::Resources() const { return mResources; }
+    
     vk::DescriptorSetLayout VkShaderLayout::Layout() const { return mLayout; }
 
-    const std::map<bindingLocation, VkShaderResource>& VkShaderLayout::Resources() const { return mResources; }
+    VkShader::VkShader(const std::vector<std::pair<std::filesystem::path, ShaderStage>>& shaders)
+        : mSources{ shaders } {
+        CreateShader();
+    }
 
-    VkShader::VkShader(const std::vector<std::pair<std::filesystem::path, ShaderStage>>& shaders) {
-        std::map<setLocation, std::map<bindingLocation, VkShaderResource>> reflection{};
+    VkShader::~VkShader() {
+        DestroyShader();
+    }
 
-        for (const auto& [file, stage] : shaders) {
+    std::vector<vk::PipelineShaderStageCreateInfo> VkShader::ShaderStages() const {
+        std::vector<vk::PipelineShaderStageCreateInfo> stages{};
+        for (const auto& [stage, module] : mShaderModules) {
+            stages.push_back({ {}, stage, module, "main" });
+        }
+
+        return stages;
+    }
+
+    ShaderLayout* VkShader::Layout(setLocation set) const { return mLayouts.at(set); }
+
+    const std::map<setLocation, ShaderLayout*>& VkShader::Layouts() const { return mLayouts; }
+
+    std::vector<vk::DescriptorSetLayout> VkShader::DescriptorLayouts() const {
+        std::vector<vk::DescriptorSetLayout> layouts{};
+        for (const auto& [set, layout] : mLayouts) {
+            layouts.push_back(reinterpret_cast<VkShaderLayout*>(layout)->Layout());
+        }
+
+        return layouts;
+    }
+
+    const std::vector<VkShaderPushConstant>& VkShader::PushConstants() const { return mPushConstants; }
+
+    u64 VkShader::SourceId() const { return mSourceId; }
+    
+    void VkShader::Reload() {
+        DestroyShader();
+        CreateShader();       
+    }
+
+    void VkShader::CreateShader() {
+        std::map<setLocation, std::map<u32, ShaderResource*>> reflection{};
+        for (const auto& [file, stage] : mSources) {
             vk::ShaderStageFlagBits vkStage{ GetVkShaderStage(stage) };
             
             if (mShaderModules.find(vkStage) != mShaderModules.end()) {
@@ -81,37 +126,21 @@ namespace Snow {
         }
     }
 
-    VkShader::~VkShader() {
-        for (const auto& [set, layout] : mLayouts) {
-            delete layout;
-        }
+    void VkShader::DestroyShader() {
+        mSourceId = 0;
         
+        for (const auto& [set, layout] : mLayouts) {
+            delete reinterpret_cast<VkShaderLayout*>(layout);
+        }
+        mLayouts.clear();
+
         for (const auto& [stage, module] : mShaderModules) {
             VkCore::Instance()->Device().destroyShaderModule(module);
         }
+        mShaderModules.clear();
+
+        mPushConstants.clear();
     }
-
-    std::vector<vk::PipelineShaderStageCreateInfo> VkShader::ShaderStages() const {
-        std::vector<vk::PipelineShaderStageCreateInfo> stages{};
-        for (const auto& [stage, module] : mShaderModules) {
-            stages.push_back({ {}, stage, module, "main" });
-        }
-
-        return stages;
-    }
-
-    VkShaderLayout* VkShader::Layout(setLocation set) const { return mLayouts.at(set); }
-
-    std::vector<vk::DescriptorSetLayout> VkShader::DescriptorLayouts() const {
-        std::vector<vk::DescriptorSetLayout> layouts{};
-        for (const auto& [set, layout] : mLayouts) {
-            layouts.push_back(layout->Layout());
-        }
-
-        return layouts;
-    }
-
-    const std::vector<VkShaderPushConstant>& VkShader::PushConstants() const { return mPushConstants; }
 
     std::vector<u32> VkShader::CompileShader(const std::filesystem::path& file, vk::ShaderStageFlagBits stage) {
         static shaderc::Compiler compiler{};
@@ -124,6 +153,8 @@ namespace Snow {
         }
 
         std::string code{ reinterpret_cast<char*>(data.data()), data.size() };
+        mSourceId += std::hash<std::string>{}(code);
+        
         shaderc::SpvCompilationResult result{ compiler.CompileGlslToSpv(code, GetShadercShaderKind(stage), file.filename().string().c_str()) };
 
         if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
@@ -135,7 +166,7 @@ namespace Snow {
         return { result.begin(), result.end() };
     }
 
-    void VkShader::ReflectShader(const std::vector<u32>& shader, vk::ShaderStageFlagBits stage, std::map<setLocation, std::map<bindingLocation, VkShaderResource>>& reflection) {
+    void VkShader::ReflectShader(const std::vector<u32>& shader, vk::ShaderStageFlagBits stage, std::map<setLocation, std::map<u32, ShaderResource*>>& reflection) {
         spirv_cross::Compiler compiler{ shader };
         spirv_cross::ShaderResources resources{ compiler.get_shader_resources() };
 
@@ -173,11 +204,11 @@ namespace Snow {
             description.stageFlags = stage;
             description.pImmutableSamplers = nullptr;
 
-            VkShaderResource shaderResource{};
-            shaderResource.Description = description;
-            shaderResource.Size = size;
-            shaderResource.Type = ShaderResourceType::Uniform;
-            shaderResource.Name = resource.name;
+            VkShaderResource* shaderResource{ new VkShaderResource{} };
+            shaderResource->Description = description;
+            shaderResource->Size = size;
+            shaderResource->Type = ShaderResourceType::Uniform;
+            shaderResource->Name = resource.name;
 
             if (reflection.find(set) == reflection.end()) {
                 reflection.insert({ set, {} });
@@ -188,7 +219,7 @@ namespace Snow {
                 continue;
             }
 
-            LOG_WARN("Duplicate resource at set: {}, binding: {} with names: {} and: {}", set, binding, reflection.at(set).at(binding).Name, shaderResource.Name);
+            LOG_WARN("Duplicate resource at set: {}, binding: {} with names: {} and: {}", set, binding, reflection.at(set).at(binding)->Name, shaderResource->Name);
         }
 
         for (const auto& resource : resources.sampled_images) {
@@ -202,11 +233,11 @@ namespace Snow {
             description.stageFlags = stage;
             description.pImmutableSamplers = nullptr;
 
-            VkShaderResource shaderResource{};
-            shaderResource.Description = description;
-            shaderResource.Size = 0;
-            shaderResource.Type = ShaderResourceType::Image;
-            shaderResource.Name = resource.name;
+            VkShaderResource* shaderResource{ new VkShaderResource{} };
+            shaderResource->Description = description;
+            shaderResource->Size = 0;
+            shaderResource->Type = ShaderResourceType::Image;
+            shaderResource->Name = resource.name;
             
             if (reflection.find(set) == reflection.end()) {
                 reflection.insert({ set, {} });
@@ -217,7 +248,7 @@ namespace Snow {
                 continue;
             }
 
-            LOG_WARN("Duplicate resource at set: {}, binding: {} with names: {} and: {}", set, binding, reflection.at(set).at(binding).Name, shaderResource.Name);
+            LOG_WARN("Duplicate resource at set: {}, binding: {} with names: {} and: {}", set, binding, reflection.at(set).at(binding)->Name, shaderResource->Name);
         }
     }
 }

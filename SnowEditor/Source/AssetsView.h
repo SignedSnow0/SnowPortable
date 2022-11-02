@@ -15,6 +15,7 @@ private:
     std::filesystem::path mCurrentPath;
     Snow::Project* mProject{ nullptr };
 
-    Snow::Image* mFolderIcon;
-    Snow::Image* mMeshIcon;
+    Snow::ResourcePtr<Snow::Image> mFolderIcon;
+    Snow::ResourcePtr<Snow::Image> mMeshIcon;
+    Snow::ResourcePtr<Snow::Image> mImageIcon;
 };

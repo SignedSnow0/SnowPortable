@@ -26,11 +26,10 @@ namespace Snow {
     private:
         Scene* mScene{ nullptr };
 
-        Shader* mShader{ nullptr };
+        ResourcePtr<Shader> mShader{ nullptr };
         RenderPass* mRenderPass{ nullptr };
         Pipeline* mPipeline{ nullptr };
         ResourcePtr<DescriptorSet> mDescriptorSet{ nullptr };
-        ResourcePtr<Mesh> mMesh{ nullptr };
 		
         Camera mCamera;
 

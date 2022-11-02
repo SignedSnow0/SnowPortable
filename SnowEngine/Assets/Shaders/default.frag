@@ -11,4 +11,5 @@ void main() {
     vec3 albedoColor = texture(albedo, inUV).rgb;
 
     outColor = vec4(albedoColor,  1.0);
+    //outColor = vec4(0.2, 0.4, 0.6, 1.0);
 }

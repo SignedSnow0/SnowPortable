@@ -156,6 +156,8 @@ void EditorApplication::DrawGui() {
     mAssetsView.Draw();
 
     mEntityView.Draw();
+
+    mResourcesView.Draw();
 }
 
 void CreateApplication(Snow::Application*& app) {

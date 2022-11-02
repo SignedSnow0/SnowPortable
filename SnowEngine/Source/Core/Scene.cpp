@@ -18,6 +18,13 @@ namespace Snow {
             return GetEntity(id);
         }
         else {
+            Entity e{ mRegistry.create(), this };
+            e.AddComponent<TransformComponent>();
+            auto& comp = e.AddComponent<TagComponent>();
+            comp.Tag = "New entity";
+
+            mEntities.emplace_back(e.Id());
+
             return CreateEntity();
         }
     }

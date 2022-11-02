@@ -13,15 +13,29 @@ namespace Snow {
     
     vec2f Input::MousePosition() { return sMousePosition; }
     
-    f32 Input::MouseX(){ return sMousePosition.x; }
+    f32 Input::MouseX() { return sMousePosition.x; }
     
-    f32 Input::MouseY(){ return sMousePosition.y; }
+    f32 Input::MouseY() { return sMousePosition.y; }
 
     f32 Input::WheelDelta() { return sWheelDelta; }
 
-    void Input::SetKey(Key key, b8 pressed) { sKeys[static_cast<u32>(key)] = pressed; }
+    void Input::SetKey(Key key, b8 pressed) {
+        u32 i{ static_cast<u32>(key) };
+        if (i >= 512) {
+            LOG_WARN("Unknown key pressed: {}", i);
+            return;
+        }
+        sKeys[i] = pressed;
+    }
     
-    void Input::SetButton(Button button, b8 pressed) { sMouseButtons[static_cast<u32>(button)] = pressed; }
+    void Input::SetButton(Button button, b8 pressed) {
+        u32 i{ static_cast<u32>(button) };
+        if (i >= 8) {
+            LOG_WARN("Unknown button pressed: {}", i);
+            return;
+        }
+        sMouseButtons[static_cast<u32>(button)] = pressed;
+    }
     
     void Input::SetMousePosition(vec2f position) { sMousePosition = position; }
     

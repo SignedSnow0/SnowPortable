@@ -7,8 +7,45 @@
 #include "SceneRenderer.h"
 #include "Core/Utils.h"
 
-//https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/base/VulkanglTFModel.cpp
 namespace Snow {
+    std::map<std::filesystem::path, Mesh*> Importer::sMeshCache{};
+    std::map<u64, Shader*> Importer::sShaderCache{};
+
+    ResourcePtr<Mesh> Importer::ImportMesh(const std::filesystem::path& path, b8 forceImport) {
+        if (!forceImport && sMeshCache.find(path) != sMeshCache.end()) {
+            return sMeshCache.at(path);
+        }
+
+        GltfImporter importer{};
+        ResourcePtr<Mesh> mesh{ importer.ImportModel(path) };
+        if (!forceImport) {        
+            sMeshCache.insert({ path, mesh });
+        }
+
+        return mesh;
+    }
+
+    ResourcePtr<Shader> Importer::ImportShader(const std::vector<std::pair<std::filesystem::path, ShaderStage>>& shaders, const std::string& name, b8 forceImport) {
+        u64 hash = 0;
+        for (const auto& [path, stage] : shaders) {
+            hash += std::hash<std::filesystem::path>{}(path);
+        }
+
+        if (!forceImport && sShaderCache.find(hash) != sShaderCache.end()) {
+            return sShaderCache.at(hash);
+        }
+
+        ResourcePtr<Shader> shader{ Shader::Create(shaders, name) };
+        if (!forceImport) {
+            sShaderCache.insert({ hash, shader });
+        }
+
+        return shader;
+    }    
+
+    const std::map<u64, Shader*>& Importer::ShaderCache() { return sShaderCache; }
+    
+    //https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/base/VulkanglTFModel.cpp
     void GltfImporter::PreloadImages(const tinygltf::Model& model) {
         for (const auto& texture : model.textures) {
             tinygltf::Image image{ model.images[texture.source] };
@@ -18,6 +55,7 @@ namespace Snow {
             info.Width = image.width;
             info.Height = image.height;
             info.Data = image.image.data();
+            info.File = image.uri;
 
             mLoadedImages.push_back(Image::Create(info));
         }
@@ -26,13 +64,14 @@ namespace Snow {
     void GltfImporter::PreloadMaterials(const tinygltf::Model& model) {
         for (const auto& mat : model.materials) {
             Pipeline* pipeline{ SceneRenderer::DefaultPipeline() };
-            Material* material{ new Material(*pipeline) };
+            ResourcePtr<Material> material{ new Material(*pipeline) };
 
             if (mat.values.find("baseColorTexture") != mat.values.end()) {
                 material->SetAlbedo(mLoadedImages[mat.values.at("baseColorTexture").TextureIndex()]);
             }
             else {
-                material->SetAlbedo(Image::Create({ ImageUsage::Image, Utils::GetImagesPath() / "White.png" }));
+                ResourcePtr<Image> image{ Image::Create({ ImageUsage::Image, Utils::GetImagesPath() / "White.png" }) };
+                material->SetAlbedo(image);
             }
 
             mLoadedMaterials.push_back(material);
@@ -209,11 +248,10 @@ namespace Snow {
             }
         }
 
-        Material* material{ mLoadedMaterials[gltfMesh.primitives[0].material] };
         VertexBuffer* vb = VertexBuffer::Create(vertices.data(), vertices.size());
         IndexBuffer* ib = IndexBuffer::Create(indices.data(), indices.size());
 
-        mesh->mMaterial = material;
+        mesh->mMaterial = mLoadedMaterials[gltfMesh.primitives[0].material];
         mesh->mVertexBuffer = vb;
         mesh->mIndexBuffer = ib;
     }

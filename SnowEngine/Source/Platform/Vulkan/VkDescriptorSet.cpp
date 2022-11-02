@@ -41,9 +41,9 @@ namespace Snow {
             imageInfo.imageView = vkImage->View();
             imageInfo.sampler = vkImage->Sampler();
 
-            for (u32 i = 0; i < mDescriptorSets.size(); i++) {
+            VkSurface::BoundSurface()->AddToDeletionQueue([resource, imageInfo, this](u32 frame) {
                 vk::WriteDescriptorSet write{};
-                write.dstSet = mDescriptorSets[i];
+                write.dstSet = mDescriptorSets[frame];
                 write.dstBinding = resource->second.Binding;
                 write.dstArrayElement = 0;
                 write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
@@ -51,8 +51,8 @@ namespace Snow {
                 write.pImageInfo = &imageInfo;
 
                 VkCore::Instance()->Device().updateDescriptorSets(write, nullptr);
-            }
-
+            });
+           
             return;
         }
 
@@ -70,9 +70,9 @@ namespace Snow {
         u32 uniformCount{ 0 };
         u32 imageCount{ 0 };
         for (const auto& [binding, resource] : layout->Resources()) {
-            if (resource.Type == ShaderResourceType::Uniform)
+            if (resource->Type == ShaderResourceType::Uniform)
                 uniformCount++;
-            else if (resource.Type == ShaderResourceType::Image)
+            else if (resource->Type == ShaderResourceType::Image)
                 imageCount++;
         }
 
@@ -101,11 +101,12 @@ namespace Snow {
 
     void VkDescriptorSet::CreateUniformBuffers(const VkShaderLayout* layout, u32 frameCount) {
         for (const auto& [binding, description] : layout->Resources()) {
-            if (description.Type == ShaderResourceType::Uniform) {
-                mResources.insert({ description.Name, { description.Type, binding, new VkUniformBuffer(description.Size, frameCount) } });
+            VkShaderResource vkDescription{ *reinterpret_cast<const VkShaderResource*>(description) };
+            if (vkDescription.Type == ShaderResourceType::Uniform) {
+                mResources.insert({ vkDescription.Name, { vkDescription.Type, binding, new VkUniformBuffer(vkDescription.Size, frameCount) } });
             }
-            else if (description.Type == ShaderResourceType::Image) {
-                mResources.insert({ description.Name, { description.Type, binding, nullptr } });
+            else if (vkDescription.Type == ShaderResourceType::Image) {
+                mResources.insert({ vkDescription.Name, { vkDescription.Type, binding, nullptr } });
             }
         }
 
@@ -116,7 +117,7 @@ namespace Snow {
                     vk::DescriptorBufferInfo bufferInfo{};
                     bufferInfo.buffer = resource.Uniform->Buffer(i);
                     bufferInfo.offset = 0;
-                    bufferInfo.range = layout->Resources().at(resource.Binding).Size;
+                    bufferInfo.range = reinterpret_cast<VkShaderResource*>(layout->Resources().at(resource.Binding))->Size;
 
                     vk::WriteDescriptorSet write{};
                     write.dstSet = mDescriptorSets[i];

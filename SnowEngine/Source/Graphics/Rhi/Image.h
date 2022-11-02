@@ -25,5 +25,6 @@ namespace Snow {
         virtual ~Image() = default;
 
         virtual ImTextureID GuiId() = 0;
+        virtual std::filesystem::path Path() const = 0;
     };
 }

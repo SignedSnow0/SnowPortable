@@ -6,6 +6,7 @@
 #include "Core/Components.h"
 #include "Core/Application.h"
 #include "Core/Logger.h"
+#include "Graphics/Importers.h"
 
 namespace Snow {
     static void SerializeScene(Scene* scene, nlohmann::json& json) {
@@ -22,12 +23,20 @@ namespace Snow {
                 transformJson["position"] = { comp->Position.x, comp->Position.y, comp->Position.z };
                 transformJson["rotation"] = { comp->Rotation.x, comp->Rotation.y, comp->Rotation.z };
                 transformJson["scale"] = { comp->Scale.x, comp->Scale.y, comp->Scale.z };
+				
                 entityJson["transform"] = transformJson;
             }
             if (auto* comp = e.TryGetComponent<TagComponent>(); comp) {
                 nlohmann::json transformJson;
                 transformJson["name"] = comp->Tag;
+				
                 entityJson["tag"] = transformJson;
+            }
+            if (auto* comp = e.TryGetComponent<MeshComponent>(); comp) {
+                nlohmann::json meshJson;
+                meshJson["source"] = comp->Source;
+				
+                entityJson["mesh"] = meshJson;
             }
             
             entities.push_back(entityJson);
@@ -38,7 +47,8 @@ namespace Snow {
     static void DeserializeScene(Project* project, const nlohmann::json& json) {
         Scene* scene = new Scene();
         scene->SetName(json["name"]);
-        
+        b8 isActive{ json["isActive"] };
+
         for (auto& entityJson : json["entities"]) {
             Entity e = scene->CreateOrGetEntity(entityJson["id"]);
 
@@ -50,12 +60,21 @@ namespace Snow {
                 transform.Rotation = { transformJson["rotation"][0], transformJson["rotation"][1], transformJson["rotation"][2] };
                 transform.Scale = { transformJson["scale"][0], transformJson["scale"][1], transformJson["scale"][2] };
             }
-            
             if (entityJson.find("tag") != entityJson.end()) {
                 auto& tagJson = entityJson["tag"];
                 auto& tag = e.GetComponent<TagComponent>();
 
 				tag.Tag = tagJson["name"];
+            }
+            if (entityJson.find("mesh") != entityJson.end()) {
+                auto& meshJson = entityJson["mesh"];
+                auto& mesh = e.AddComponent<MeshComponent>();
+
+				std::string source = meshJson["source"];
+				mesh.Source = source;
+                if (isActive) {
+                    mesh.Mesh = Importer::ImportMesh(source);
+                }
             }
         }
         

@@ -8,11 +8,10 @@ AssetsView::AssetsView(const std::filesystem::path& initialPath)
     : mCurrentPath{ initialPath } {
     mFolderIcon = Snow::Image::Create({ Snow::ImageUsage::Image, Utils::GetImagesPath() / "Folder-Icon.png" });
     mMeshIcon = Snow::Image::Create({ Snow::ImageUsage::Image, Utils::GetImagesPath() / "Mesh.png" });
+    mImageIcon = Snow::Image::Create({ Snow::ImageUsage::Image, Utils::GetImagesPath() / "Image.png" });
 }
 
 AssetsView::~AssetsView() {
-    delete mMeshIcon;
-    delete mFolderIcon;
 }
 
 void AssetsView::SetProject(Snow::Project* project) {
@@ -98,6 +97,25 @@ void AssetsView::Draw() {
             else if (item.path().extension() == ".gltf") {
                 ImGui::TextImageButton(path.filename().string(), mMeshIcon->GuiId(), { 100, 100 });
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                    
+                }
+
+                if (ImGui::BeginDragDropSource()) {
+					ImGui::SetDragDropPayload("meshFile", path.string().c_str(), path.string().size() + 1, ImGuiCond_Once);
+					
+                    ImGui::EndDragDropSource();
+                }
+            }
+            else if (item.path().extension() == ".jpg" || item.path().extension() == ".png" || item.path().extension() == ".jpeg") {
+                ImGui::TextImageButton(path.filename().string(), mImageIcon->GuiId(), { 100, 100 });
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                    
+                }
+
+                if (ImGui::BeginDragDropSource()) {
+					ImGui::SetDragDropPayload("imageFile", path.string().c_str(), path.string().size() + 1, ImGuiCond_Once);
+					
+                    ImGui::EndDragDropSource();
                 }
             }
             ImGui::SameLine();

@@ -16,6 +16,7 @@ namespace Snow {
     };
 
     struct MeshComponent {
-        Mesh* Mesh{ nullptr };
+        ResourcePtr<Mesh> Mesh{ nullptr };
+        std::filesystem::path Source;
     };
 }

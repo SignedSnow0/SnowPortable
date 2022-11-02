@@ -9,9 +9,11 @@ namespace Snow {
     public:
         Material(Pipeline& pipeline);
         
+        void SetAlbedo(const ResourcePtr<Image>& albedo);
+        ResourcePtr<Image> GetAlbedo() const;
+
         void Bind() const;
 
-        void SetAlbedo(Image* albedo);
 
     private:
         ResourcePtr<Image> mAlbedo{ nullptr };

@@ -27,6 +27,8 @@ namespace Snow {
     Application::~Application() {
         delete mSceneRenderer;
 
+        delete mProject;
+
         if (mGuiLayer)
             delete mGuiLayer;
 

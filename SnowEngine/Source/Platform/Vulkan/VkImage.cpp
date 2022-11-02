@@ -59,7 +59,7 @@ namespace Snow {
     }
     
     VkImage::VkImage(const ImageCreateInfo& createInfo)
-        : mUsage{ createInfo.Usage } {
+        : mUsage{ createInfo.Usage }, mPath{ createInfo.File } {
         CreateImage(createInfo);
         CreateViewAndSampler(createInfo);
     }
@@ -82,6 +82,8 @@ namespace Snow {
 
         return mGuiId;
     }
+
+    std::filesystem::path VkImage::Path() const { return mPath; }
 
     vk::Image VkImage::Image() const { return mImage; }
 

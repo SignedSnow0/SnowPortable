@@ -55,25 +55,73 @@ void EntityView::Draw() {
                 }
                 if (ImGui::TreeNode("Material")) {
                     auto& mat = comp->Mesh->GetMaterial();
-                    auto albedo = mat->GetAlbedo();
-                    ImGui::Text("Albedo");
-                    ImGui::Image(reinterpret_cast<void*>(albedo->GuiId()), { 128.0f, 128.0f });
-                    if (ImGui::BeginDragDropTarget()) {
-                    const auto* payload{ ImGui::AcceptDragDropPayload("imageFile") };
-					if (payload) {
-                        std::filesystem::path file{ static_cast<const char*>(payload->Data) };
+                    ImGui::Text(mat->Name().c_str());
+                    {
+                        auto albedo = mat->GetAlbedo();
+                        ImGui::Text("Albedo");
+                        ImGui::Image(reinterpret_cast<void*>(albedo->GuiId()), { 128.0f, 128.0f });
+                        if (ImGui::BeginDragDropTarget()) {
+                            const auto* payload{ ImGui::AcceptDragDropPayload("imageFile") };
+                            if (payload) {
+                                std::filesystem::path file{ static_cast<const char*>(payload->Data) };
 
-                        Snow::ImageCreateInfo info;
-                        info.Usage = Snow::ImageUsage::Image;
-                        info.File = file;
-                        Snow::ResourcePtr<Snow::Image> image{ Snow::Image::Create(info) };
-                        mat->SetAlbedo(image);
-					}
+                                Snow::ImageCreateInfo info;
+                                info.Usage = Snow::ImageUsage::Image;
+                                info.File = file;
+                                Snow::ResourcePtr<Snow::Image> image{ Snow::Image::Create(info) };
+                                mat->SetAlbedo(image);
+                            }
+                            
+                            ImGui::EndDragDropTarget();
+                        }
 
-                    ImGui::EndDragDropTarget();
-                }
-                    std::string source{ albedo->Path().string() };
-                    ImGui::Text("%s", source.size() ? source.c_str() : "No source path");
+                        std::string source{ albedo->Path().string() };
+                        ImGui::Text("%s", source.size() ? source.c_str() : "No source path");
+                    }
+                    {
+                        auto normal = mat->GetNormal();
+                        ImGui::Text("Normal");
+                        ImGui::Image(reinterpret_cast<void*>(normal->GuiId()), { 128.0f, 128.0f });
+                        if (ImGui::BeginDragDropTarget()) {
+                            const auto* payload{ ImGui::AcceptDragDropPayload("imageFile") };
+                            if (payload) {
+                                std::filesystem::path file{ static_cast<const char*>(payload->Data) };
+
+                                Snow::ImageCreateInfo info;
+                                info.Usage = Snow::ImageUsage::Image;
+                                info.File = file;
+                                Snow::ResourcePtr<Snow::Image> image{ Snow::Image::Create(info) };
+                                mat->SetNormal(image);
+                            }
+                            
+                            ImGui::EndDragDropTarget();
+                        }
+
+                        std::string source{ normal->Path().string() };
+                        ImGui::Text("%s", source.size() ? source.c_str() : "No source path");
+                    }
+                    {
+                        auto metallicRoughness = mat->GetMetallicRoughness();
+                        ImGui::Text("Metallic roughness");
+                        ImGui::Image(reinterpret_cast<void*>(metallicRoughness->GuiId()), { 128.0f, 128.0f });
+                        if (ImGui::BeginDragDropTarget()) {
+                            const auto* payload{ ImGui::AcceptDragDropPayload("imageFile") };
+                            if (payload) {
+                                std::filesystem::path file{ static_cast<const char*>(payload->Data) };
+
+                                Snow::ImageCreateInfo info;
+                                info.Usage = Snow::ImageUsage::Image;
+                                info.File = file;
+                                Snow::ResourcePtr<Snow::Image> image{ Snow::Image::Create(info) };
+                                mat->SetMetallicRoughness(image);
+                            }
+                            
+                            ImGui::EndDragDropTarget();
+                        }
+
+                        std::string source{ metallicRoughness->Path().string() };
+                        ImGui::Text("%s", source.size() ? source.c_str() : "No source path");
+                    }
 
                     ImGui::TreePop();
                 }

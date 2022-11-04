@@ -36,7 +36,9 @@ namespace Snow {
 
     VkShaderLayout::VkShaderLayout(const std::map<u32, ShaderResource*>& resources)
         : mResources{ resources } {
-        std::vector<vk::DescriptorSetLayoutBinding> bindings{ resources.size() };
+        std::vector<vk::DescriptorSetLayoutBinding> bindings{};
+        bindings.resize(resources.size());
+        
         u32 i{ 0 };
         for (const auto& [location, resource] : resources) {
             bindings[i++] = reinterpret_cast<VkShaderResource*>(resource)->Description;

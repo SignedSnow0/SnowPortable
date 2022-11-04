@@ -6,6 +6,10 @@
 #include "Importers.h"
 
 namespace Snow {
+    struct SceneSettings {
+        vec4f ambientColor = vec4f(1.0f);
+    };
+
     SceneRenderer* SceneRenderer::sInstance{ nullptr };
 
     SceneRenderer::SceneRenderer(RenderTarget& target)
@@ -79,8 +83,12 @@ namespace Snow {
         camera.View = mCamera.ViewMatrix();
         camera.Projection = mCamera.ProjectionMatrix();
 
+
+        static SceneSettings settings{};
+        settings.ambientColor = vec4f(1.0f, 1.0f, 1.0f, 1.0f);
+        mDescriptorSet->SetUniform("SceneSettings", &settings);
         mDescriptorSet->SetUniform("Camera", &camera);
-        
+
         mDescriptorSet->Bind();
 
         mScene->ExecuteForEachEntity([this](Entity e) {

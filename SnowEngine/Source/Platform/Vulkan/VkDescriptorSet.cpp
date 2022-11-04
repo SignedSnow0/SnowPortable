@@ -111,7 +111,6 @@ namespace Snow {
         }
 
         for (u32 i = 0; i < frameCount; i++) {
-            std::vector<vk::WriteDescriptorSet> writes;
             for (const auto& [name, resource] : mResources) {
                 if (resource.Type == ShaderResourceType::Uniform) {
                     vk::DescriptorBufferInfo bufferInfo{};
@@ -127,11 +126,10 @@ namespace Snow {
                     write.descriptorCount = 1;
                     write.pBufferInfo = &bufferInfo;
 
-                    writes.push_back(write);
+                    VkCore::Instance()->Device().updateDescriptorSets(1, &write, 0, nullptr);
                 }
             }
 
-            VkCore::Instance()->Device().updateDescriptorSets(static_cast<u32>(writes.size()), writes.data(), 0, nullptr);
         }
     }
 }

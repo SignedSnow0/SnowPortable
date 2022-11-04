@@ -64,15 +64,28 @@ namespace Snow {
     void GltfImporter::PreloadMaterials(const tinygltf::Model& model) {
         for (const auto& mat : model.materials) {
             Pipeline* pipeline{ SceneRenderer::DefaultPipeline() };
-            ResourcePtr<Material> material{ new Material(*pipeline) };
+            ResourcePtr<Material> material{ new Material(*pipeline, mat.name) };
+            ResourcePtr<Image> white{ Image::Create({ ImageUsage::Image, Utils::GetImagesPath() / "White.png" }) };
 
-            if (mat.values.find("baseColorTexture") != mat.values.end()) {
-                material->SetAlbedo(mLoadedImages[mat.values.at("baseColorTexture").TextureIndex()]);
+            if (mat.pbrMetallicRoughness.baseColorTexture.index >= 0) {
+                material->SetAlbedo(mLoadedImages.at(mat.pbrMetallicRoughness.baseColorTexture.index));
             }
             else {
-                ResourcePtr<Image> image{ Image::Create({ ImageUsage::Image, Utils::GetImagesPath() / "White.png" }) };
-                material->SetAlbedo(image);
+                material->SetAlbedo(white);
             }
+            if (mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0) {
+                material->SetMetallicRoughness(mLoadedImages.at(mat.pbrMetallicRoughness.metallicRoughnessTexture.index));
+            }
+            else {
+                material->SetMetallicRoughness(white);
+            }
+            if (mat.normalTexture.index >= -1) {
+                material->SetNormal(mLoadedImages.at(mat.normalTexture.index));
+            }
+            else {
+                material->SetNormal(white);
+            }
+            //TODO ao, emissive
 
             mLoadedMaterials.push_back(material);
         }
